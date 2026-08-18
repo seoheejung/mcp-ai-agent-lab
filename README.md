@@ -74,7 +74,7 @@ AI Agent가 외부 시스템을 사용하기 위한 방법 중 하나로 MCP를 
 
 ## 학습 문서
 
-`docs/index.html`
+[학습 문서 보기](https://seoheejung.github.io/mcp-ai-agent-concepts/)
 
 다음 내용을 하나의 HTML 문서로 정리합니다.
 
