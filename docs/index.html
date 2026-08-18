@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="MCP와 AI Agent의 개념을 Tool Calling, Workflow, Agent Loop, MCP Server 관점에서 단계적으로 설명한 학습 문서" />
+  <title>MCP와 AI Agent 개념 정리</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --surface: #121a2b;
+      --surface-2: #182236;
+      --surface-3: #0f1728;
+      --text: #e8edf5;
+      --muted: #a7b2c5;
+      --line: #2a3650;
+      --accent: #70b7ff;
+      --accent-2: #8fe3c1;
+      --warning: #f3c969;
+      --code: #09101c;
+      --max: 1120px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(112, 183, 255, 0.08), transparent 28rem),
+        var(--bg);
+      color: var(--text);
+      font-family:
+        Inter, Pretendard, "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+      line-height: 1.75;
+      word-break: keep-all;
+    }
+
+    a {
+      color: var(--accent);
+      text-underline-offset: 3px;
+    }
+
+    .layout {
+      width: min(calc(100% - 40px), var(--max));
+      margin: 0 auto;
+    }
+
+    header {
+      padding: 72px 0 40px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      color: var(--accent-2);
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3 {
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 900px;
+      font-size: clamp(2.4rem, 6vw, 4.8rem);
+    }
+
+    .lead {
+      max-width: 880px;
+      margin: 24px 0 0;
+      color: var(--muted);
+      font-size: 1.12rem;
+    }
+
+    main {
+      padding: 48px 0 96px;
+    }
+
+    nav.toc {
+      margin-bottom: 48px;
+      padding: 26px 28px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }
+
+    nav.toc strong {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    nav.toc ol {
+      margin: 0;
+      padding-left: 1.35rem;
+      columns: 2;
+      column-gap: 42px;
+    }
+
+    nav.toc li {
+      margin: 6px 0;
+      break-inside: avoid;
+    }
+
+    section {
+      margin-top: 64px;
+      scroll-margin-top: 24px;
+    }
+
+    h2 {
+      margin: 0 0 20px;
+      font-size: clamp(1.7rem, 4vw, 2.5rem);
+    }
+
+    h3 {
+      margin: 34px 0 14px;
+      font-size: 1.28rem;
+    }
+
+    p {
+      margin: 14px 0;
+    }
+
+    blockquote {
+      margin: 22px 0;
+      padding: 18px 22px;
+      background: rgba(112, 183, 255, 0.08);
+      border-left: 4px solid var(--accent);
+      border-radius: 0 12px 12px 0;
+      color: #dfe9f7;
+      font-weight: 650;
+    }
+
+    .summary-box {
+      margin: 26px 0 0;
+      padding: 24px 26px;
+      background: linear-gradient(135deg, rgba(112, 183, 255, 0.12), rgba(143, 227, 193, 0.08));
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }
+
+    .summary-box p {
+      margin: 8px 0;
+      font-size: 1.06rem;
+    }
+
+    .card {
+      margin: 22px 0;
+      padding: 24px 26px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+    }
+
+    .card p:first-child {
+      margin-top: 0;
+    }
+
+    .card p:last-child {
+      margin-bottom: 0;
+    }
+
+    .diagram {
+      margin: 18px 0 26px;
+      overflow-x: auto;
+      background: var(--surface-3);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    pre {
+      margin: 0;
+      padding: 20px 22px;
+      overflow-x: auto;
+      background: var(--code);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: #d6e2f2;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.92rem;
+      line-height: 1.62;
+      white-space: pre;
+    }
+
+    .diagram pre {
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    table {
+      width: 100%;
+      margin: 22px 0;
+      border-collapse: collapse;
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    thead {
+      background: var(--surface-2);
+    }
+
+    th, td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    th {
+      font-size: 0.92rem;
+    }
+
+    .key {
+      color: var(--accent-2);
+      font-weight: 750;
+    }
+
+    .warning {
+      color: var(--warning);
+      font-weight: 700;
+    }
+
+    .source-list {
+      padding-left: 1.2rem;
+    }
+
+    .source-list li {
+      margin: 9px 0;
+    }
+
+    footer {
+      padding: 28px 0 56px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 760px) {
+      .layout {
+        width: min(calc(100% - 24px), var(--max));
+      }
+
+      header {
+        padding-top: 48px;
+      }
+
+      nav.toc ol {
+        columns: 1;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      th, td {
+        min-width: 150px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="layout">
+      <div class="eyebrow">MCP · AI Agent · Tool Calling</div>
+      <h1>MCP와 AI Agent 개념 정리</h1>
+      <p class="lead">
+        MCP, AI Agent, Tool Calling, Workflow가 각각 무엇이며 서로 어떻게 연결되는지
+        백엔드 개발 관점에서 단계적으로 정리한 문서입니다.
+      </p>
+
+      <div class="summary-box">
+        <p><strong>MCP</strong> = AI가 외부 시스템을 사용하는 방법을 표준화한 프로토콜</p>
+        <p><strong>AI Agent</strong> = 목표를 받고, LLM이 필요한 행동을 선택하며 작업을 반복하는 시스템</p>
+        <p><strong>핵심</strong> = MCP와 Agent는 같은 기술이 아니며, Agent가 MCP를 사용할 수 있습니다.</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <nav class="toc" aria-label="목차">
+      <strong>목차</strong>
+      <ol>
+        <li><a href="#section-1">먼저 AI Agent부터</a></li>
+        <li><a href="#section-2">Agent가 되면 차이가 생깁니다</a></li>
+        <li><a href="#section-3">그러면 MCP는 무엇인가</a></li>
+        <li><a href="#section-4">MCP Server</a></li>
+        <li><a href="#section-5">MCP Server에는 AI가 없어도 됩니다</a></li>
+        <li><a href="#section-6">MCP에는 Tool만 있는 것도 아닙니다</a></li>
+        <li><a href="#section-7">이제 MCP와 Agent를 합쳐보겠습니다</a></li>
+        <li><a href="#section-8">REST API에 비유하면 더 쉽습니다</a></li>
+        <li><a href="#section-9">가장 많이 헷갈리는 네 가지</a></li>
+        <li><a href="#section-10">Chatbot / Workflow / Agent / MCP 비교</a></li>
+        <li><a href="#section-11">코드로 보면 더 명확합니다</a></li>
+        <li><a href="#section-12">MCP를 코드 관점으로 바꾸면</a></li>
+        <li><a href="#section-13">지금 단계에서 공부 순서</a></li>
+        <li><a href="#final-model">최종적으로 머릿속에 남길 구조</a></li>
+        <li><a href="#sources">공식 자료</a></li>
+      </ol>
+    </nav>
+
+    <section id="section-1">
+      <h2>1. 먼저 AI Agent부터</h2>
+
+      <p>일반적인 LLM 사용은 단순합니다.</p>
+
+      <div class="diagram">
+        <pre>사용자
+  │
+  ▼
+LLM
+  │
+  ▼
+답변</pre>
+      </div>
+
+      <p>예를 들어:</p>
+
+      <pre>나: PostgreSQL의 인덱스 종류 설명해줘
+LLM: B-tree, Hash, GIN...</pre>
+
+      <p>LLM이 자신의 지식과 입력된 Context를 바탕으로 텍스트를 생성합니다.</p>
+
+      <h3>Tool을 붙이면</h3>
+
+      <p>LLM 밖에 실제 기능을 추가할 수 있습니다.</p>
+
+      <div class="diagram">
+        <pre>사용자
+  │
+  ▼
+LLM
+  │
+  ├─ getWeather()
+  ├─ searchDatabase()
+  └─ sendEmail()</pre>
+      </div>
+
+      <p>사용자가:</p>
+
+      <pre>서울 날씨 알려줘</pre>
+
+      <p>라고 했다고 가정하겠습니다.</p>
+
+      <p>LLM이 직접 날씨를 알고 있는 것이 아니라:</p>
+
+      <div class="diagram">
+        <pre>사용자
+  │
+  ▼
+LLM
+
+"현재 날씨 정보가 필요하다"
+  │
+  ▼
+getWeather("Seoul")
+  │
+  ▼
+25°C, Rain
+  │
+  ▼
+LLM
+  │
+  ▼
+"현재 서울은 25°C이고 비가 옵니다."</pre>
+      </div>
+
+      <p>이게 <strong>Tool Calling</strong>입니다.</p>
+
+      <p>여기까지는 아직 반드시 Agent라고 볼 필요는 없습니다.</p>
+    </section>
+
+    <section id="section-2">
+      <h2>2. Agent가 되면 차이가 생깁니다</h2>
+
+      <p>사용자가 이런 목표를 줬다고 해보겠습니다.</p>
+
+      <pre>우리 API가 느려진 원인을 찾아줘.</pre>
+
+      <p>단순 LLM은 실제 서버 상태를 모릅니다.</p>
+
+      <p>그런데 Agent에게 Tool들이 있다고 해보겠습니다.</p>
+
+      <pre>getApplicationLogs()
+getContainerStatus()
+getSlowQueries()
+getRecentDeployments()
+explainQuery()</pre>
+
+      <p>
+        Agent는 한 번 호출하고 끝나는 게 아니라 작업 결과를 보고
+        <strong>다음 행동을 결정</strong>합니다.
+      </p>
+
+      <div class="diagram">
+        <pre>목표
+"API 지연 원인을 찾아라"
+        │
+        ▼
+       LLM
+        │
+        │ getApplicationLogs 선택
+        ▼
+Application Logs
+        │
+        ▼
+       LLM
+        │
+        │ DB timeout 발견
+        │
+        │ getSlowQueries 선택
+        ▼
+Slow Queries
+        │
+        ▼
+       LLM
+        │
+        │ 특정 SQL 발견
+        │
+        │ explainQuery 선택
+        ▼
+EXPLAIN 결과
+        │
+        ▼
+       LLM
+        │
+        ▼
+최종 판단</pre>
+      </div>
+
+      <p>이게 Agent를 이해하는 핵심입니다.</p>
+
+      <p>
+        OpenAI Agents SDK의 실제 Runner도 이런 루프로 정의되어 있습니다.
+        모델을 호출한 뒤 결과가 최종 답변이면 종료하고, Tool Call이면 Tool을 실행하여
+        결과를 다시 모델에 전달하며, Handoff이면 다른 Agent로 제어를 넘기는 방식입니다.
+        (<a href="https://openai.github.io/openai-agents-js/guides/running-agents/" target="_blank" rel="noreferrer">OpenAI Agents SDK — Running agents</a>)
+      </p>
+
+      <p>
+        Anthropic도 Agent를 <strong>LLM이 자신의 프로세스와 Tool 사용을 동적으로 결정하며
+        목표를 수행하는 시스템</strong>으로 구분합니다. 미리 정해진 코드 경로를 따르는
+        Workflow와 Agent를 구분하는 기준도 여기에 있습니다.
+        (<a href="https://www.anthropic.com/engineering/building-effective-agents" target="_blank" rel="noreferrer">Anthropic — Building effective agents</a>)
+      </p>
+
+      <p>그래서 Agent를 가장 단순화하면:</p>
+
+      <div class="diagram">
+        <pre>생각
+ ↓
+행동
+ ↓
+관찰
+ ↓
+다시 판단
+ ↓
+행동
+ ↓
+...
+ ↓
+목표 달성</pre>
+      </div>
+
+      <p>입니다.</p>
+    </section>
+
+    <section id="section-3">
+      <h2>3. 그러면 MCP는 무엇인가</h2>
+
+      <p>여기서 전혀 다른 문제가 하나 생깁니다.</p>
+
+      <p>Agent에게 Tool을 어떻게 제공할까요?</p>
+
+      <p>직접 코드를 작성할 수도 있습니다.</p>
+
+      <pre><code>const tools = {
+  getLogs,
+  getSlowQueries,
+  getContainerStatus,
+};</code></pre>
+
+      <p>이 Agent에서는 사용할 수 있습니다.</p>
+
+      <p>그런데 다른 AI 프로그램에서도 이 Tool을 사용하고 싶으면 또 연결해야 합니다.</p>
+
+      <div class="diagram">
+        <pre>내 Agent ───────── PostgreSQL 코드
+
+Claude ────────── PostgreSQL 코드
+
+VS Code ───────── PostgreSQL 코드
+
+다른 Agent ────── PostgreSQL 코드</pre>
+      </div>
+
+      <p>각 AI Application마다 통합 방법이 달라지는 문제가 생깁니다.</p>
+
+      <p>여기서 MCP가 등장합니다.</p>
+
+      <p>
+        MCP 공식 문서는 MCP를 <strong>AI 애플리케이션을 외부 시스템에 연결하기 위한 오픈 표준</strong>으로
+        정의합니다. 데이터 소스, Tool, Workflow 등을 표준화된 방식으로 AI 애플리케이션에
+        제공하는 것이 목적입니다. 공식 문서에서는 이를 AI 애플리케이션을 위한 USB-C에 비유합니다.
+        (<a href="https://modelcontextprotocol.io/docs/getting-started/intro" target="_blank" rel="noreferrer">Model Context Protocol — Introduction</a>)
+      </p>
+    </section>
+
+    <section id="section-4">
+      <h2>4. MCP Server</h2>
+
+      <p>PostgreSQL을 다루는 MCP Server를 하나 만들었다고 생각해보겠습니다.</p>
+
+      <pre>PostgreSQL MCP Server</pre>
+
+      <p>이 서버가 이런 기능을 제공합니다.</p>
+
+      <pre>Tools
+
+get_tables
+get_table_schema
+execute_readonly_query
+explain_query</pre>
+
+      <p>이제 AI 쪽에서는 PostgreSQL 내부 구현을 직접 알 필요가 없습니다.</p>
+
+      <div class="diagram">
+        <pre>              ┌──────────── Claude
+              │
+              ├──────────── VS Code
+              │
+PostgreSQL MCP Server
+              │
+              ├──────────── ChatGPT
+              │
+              └──────────── 내 Agent</pre>
+      </div>
+
+      <p>
+        각 프로그램은 <strong>MCP라는 동일한 규격</strong>을 사용해서 기능을 발견하고 호출할 수 있습니다.
+      </p>
+
+      <p>
+        현재 공식 MCP 아키텍처도 이를 Host / Client / Server 구조로 정의합니다.
+        MCP Host가 하나 이상의 MCP Client를 가지고 각각 MCP Server와 통신합니다.
+        MCP 자체는 LLM 사용 방법이나 Agent 실행 방식을 규정하지 않습니다.
+        (<a href="https://modelcontextprotocol.io/docs/learn/architecture" target="_blank" rel="noreferrer">Model Context Protocol — Architecture</a>)
+      </p>
+    </section>
+
+    <section id="section-5">
+      <h2>5. 중요한 부분: MCP Server에는 AI가 없어도 됩니다</h2>
+
+      <p>이 부분에서 많이 헷갈립니다.</p>
+
+      <p>예를 들어:</p>
+
+      <pre>PostgreSQL MCP Server</pre>
+
+      <p>라고 해서 내부에 GPT나 Claude가 들어가는 게 아닙니다.</p>
+
+      <p>그냥 프로그램일 수 있습니다.</p>
+
+      <div class="diagram">
+        <pre>MCP Server
+
+tools/list
+tools/call
+
+        │
+
+PostgreSQL Driver
+
+        │
+
+PostgreSQL</pre>
+      </div>
+
+      <p>역할은:</p>
+
+      <pre>"나는 이런 Tool들을 제공한다."
+
+"execute_readonly_query를 호출하면
+PostgreSQL에 쿼리하고 결과를 반환한다."</pre>
+
+      <p>입니다.</p>
+
+      <p><strong>판단하는 것은 MCP Server가 아닙니다.</strong></p>
+
+      <p>판단은 LLM 또는 Agent가 합니다.</p>
+
+      <p>
+        MCP 공식 문서에서도 MCP의 범위는 <strong>context exchange protocol</strong>에 한정되며,
+        AI 애플리케이션이 LLM을 어떻게 사용하거나 Context를 어떻게 관리할지는 규정하지 않는다고 명시합니다.
+        (<a href="https://modelcontextprotocol.io/docs/learn/architecture" target="_blank" rel="noreferrer">Model Context Protocol — Architecture</a>)
+      </p>
+    </section>
+
+    <section id="section-6">
+      <h2>6. MCP에는 Tool만 있는 것도 아닙니다</h2>
+
+      <p>핵심 요소를 단순화하면 이렇게 볼 수 있습니다.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>MCP 기능</th>
+            <th>의미</th>
+            <th>백엔드식으로 생각하면</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Tools</strong></td>
+            <td>실행 가능한 기능</td>
+            <td>API / Function</td>
+          </tr>
+          <tr>
+            <td><strong>Resources</strong></td>
+            <td>AI에게 제공할 데이터</td>
+            <td>조회 가능한 데이터</td>
+          </tr>
+          <tr>
+            <td><strong>Prompts</strong></td>
+            <td>재사용 가능한 Prompt</td>
+            <td>Template</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>예를 들어 Database MCP라면:</p>
+
+      <pre>Resources
+
+db://schema/users
+db://schema/orders</pre>
+
+      <p>처럼 Schema 정보를 제공할 수 있고,</p>
+
+      <pre>Tools
+
+execute_query
+explain_query</pre>
+
+      <p>처럼 실제 작업도 제공할 수 있습니다.</p>
+
+      <p>
+        MCP 공식 명세도 서버 기능을 Resources, Prompts, Tools 등의 primitive로 정의하고 있습니다.
+        (<a href="https://modelcontextprotocol.io/docs/learn/architecture" target="_blank" rel="noreferrer">Model Context Protocol — Architecture</a>)
+      </p>
+    </section>
+
+    <section id="section-7">
+      <h2>7. 이제 MCP와 Agent를 합쳐보겠습니다</h2>
+
+      <p>여기가 가장 중요합니다.</p>
+
+      <div class="diagram">
+        <pre>사용자
+  │
+  │ "API가 느려진 원인을 찾아줘"
+  ▼
+AI Agent
+  │
+  │ 판단
+  │
+  ├───────────────┐
+  │               │
+  ▼               ▼
+Docker MCP     Database MCP
+  │               │
+get_logs       get_slow_queries
+status         explain_query
+  │               │
+  ▼               ▼
+Docker        PostgreSQL</pre>
+      </div>
+
+      <p>Agent 입장에서는:</p>
+
+      <pre>Docker를 어떻게 제어하지?
+PostgreSQL Driver가 뭔데?
+Docker API가 뭔데?</pre>
+
+      <p>를 신경 쓸 필요가 없습니다.</p>
+
+      <p>MCP Server가 제공하는 Tool만 봅니다.</p>
+
+      <pre>get_logs
+get_container_status
+get_slow_queries
+explain_query</pre>
+
+      <p>그리고 Agent가 판단합니다.</p>
+
+      <pre>1. 로그를 확인해야겠다.
+2. DB timeout이 있네.
+3. Slow Query를 확인해야겠다.
+4. SQL 하나가 이상하다.
+5. EXPLAIN을 확인해야겠다.
+6. Seq Scan이 발생하고 있네.
+7. 최종 원인을 보고해야겠다.</pre>
+
+      <p>그래서 역할을 완전히 분리할 수 있습니다.</p>
+
+      <pre>Agent
+=
+무엇을 할 것인가 결정
+
+
+MCP
+=
+그 일을 어떻게 외부 시스템에 요청할 것인가
+
+
+MCP Server
+=
+실제 외부 시스템과 연결</pre>
+    </section>
+
+    <section id="section-8">
+      <h2>8. REST API에 비유하면 더 쉽습니다</h2>
+
+      <p>백엔드 개발 관점에서는 이 비유가 꽤 정확합니다.</p>
+
+      <p>일반 웹에서는:</p>
+
+      <div class="diagram">
+        <pre>Frontend
+
+   ↓ HTTP
+
+REST API
+
+   ↓
+
+Database</pre>
+      </div>
+
+      <p>Agent 환경에서는:</p>
+
+      <div class="diagram">
+        <pre>AI Agent
+
+   ↓ MCP
+
+MCP Server
+
+   ↓
+
+Database / GitHub / Docker / Slack / Files ...</pre>
+      </div>
+
+      <p>물론 <strong>MCP = REST</strong>라고 동일시하면 안 됩니다.</p>
+
+      <p>
+        REST는 웹 API 아키텍처 스타일이고 MCP는 AI 애플리케이션과 외부 시스템 사이의
+        Context/Tool 상호작용을 정의하는 프로토콜입니다.
+      </p>
+
+      <p>다만 처음 구조를 이해할 때는:</p>
+
+      <blockquote>AI 세계에서 외부 기능을 표준 인터페이스로 노출한다</blockquote>
+
+      <p>
+        정도로 잡으면 됩니다. MCP 공식 문서 역시 현재 서버가 AI Action용 Tools,
+        Context Data용 Resources, Interaction Template용 Prompts를 제공하는
+        Client-Server 구조로 설명합니다.
+        (<a href="https://modelcontextprotocol.io/docs/learn/architecture" target="_blank" rel="noreferrer">Model Context Protocol — Architecture</a>)
+      </p>
+    </section>
+
+    <section id="section-9">
+      <h2>9. 가장 많이 헷갈리는 네 가지</h2>
+
+      <h3>Tool Calling ≠ MCP</h3>
+
+      <div class="diagram">
+        <pre>LLM
+ ↓
+JavaScript function</pre>
+      </div>
+
+      <p>이것도 Tool Calling입니다.</p>
+
+      <p>MCP 필요 없습니다.</p>
+
+      <p>MCP를 쓰면:</p>
+
+      <div class="diagram">
+        <pre>LLM / Agent
+ ↓
+MCP Client
+ ↓
+MCP Server
+ ↓
+function</pre>
+      </div>
+
+      <p>이 됩니다.</p>
+
+      <h3>MCP ≠ Agent</h3>
+
+      <pre>MCP Server</pre>
+
+      <p>자체는 판단하지 않아도 됩니다.</p>
+
+      <p>단순히:</p>
+
+      <pre>Tool 등록
+요청 수신
+Tool 실행
+결과 반환</pre>
+
+      <p>만 할 수 있습니다.</p>
+
+      <h3>Tool Calling ≠ 반드시 Agent</h3>
+
+      <div class="diagram">
+        <pre>사용자
+ ↓
+LLM
+ ↓
+Tool 한 번 호출
+ ↓
+답변</pre>
+      </div>
+
+      <p>만으로도 Tool Calling은 가능합니다.</p>
+
+      <p>Agent의 핵심은 보다 일반적으로:</p>
+
+      <div class="diagram">
+        <pre>목표
+ ↓
+판단
+ ↓
+행동
+ ↓
+결과 관찰
+ ↓
+다시 판단</pre>
+      </div>
+
+      <p>
+        이라는 <strong>동적인 실행 루프</strong>에 있습니다. OpenAI Agents SDK의 공식 Agent Loop도
+        이 방식으로 구현되어 있습니다.
+        (<a href="https://openai.github.io/openai-agents-js/guides/running-agents/" target="_blank" rel="noreferrer">OpenAI Agents SDK — Running agents</a>)
+      </p>
+
+      <h3>Multi-Agent ≠ Agent의 필수 조건</h3>
+
+      <p>Agent 하나만 있어도 됩니다.</p>
+
+      <div class="diagram">
+        <pre>User
+ ↓
+Agent
+ ├─ Tool A
+ ├─ Tool B
+ └─ Tool C</pre>
+      </div>
+
+      <p>여러 Agent가 필요한 경우에만:</p>
+
+      <div class="diagram">
+        <pre>Manager Agent
+   │
+   ├─ DB Agent
+   ├─ Docker Agent
+   └─ Git Agent</pre>
+      </div>
+
+      <p>처럼 확장합니다.</p>
+
+      <p>
+        OpenAI Agents SDK에서는 이를 Handoff 또는 Agent-as-Tool 등의 orchestration 방식으로 지원하지만,
+        Agent의 필수 구성 요소는 아닙니다.
+        (<a href="https://openai.github.io/openai-agents-python/handoffs/" target="_blank" rel="noreferrer">OpenAI Agents SDK — Handoffs</a>)
+      </p>
+    </section>
+
+    <section id="section-10">
+      <h2>10. Chatbot / Workflow / Agent / MCP를 한 번에 비교</h2>
+
+      <p>이 표만 확실하게 이해하셔도 개념이 상당 부분 정리됩니다.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>개념</th>
+            <th>역할</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>LLM</strong></td>
+            <td>입력을 받아 추론하고 출력 생성</td>
+          </tr>
+          <tr>
+            <td><strong>Chatbot</strong></td>
+            <td>LLM과 사용자가 대화할 수 있는 애플리케이션</td>
+          </tr>
+          <tr>
+            <td><strong>Tool Calling</strong></td>
+            <td>LLM이 외부 함수를 호출</td>
+          </tr>
+          <tr>
+            <td><strong>Workflow</strong></td>
+            <td>개발자가 정해놓은 순서대로 LLM/Tool 실행</td>
+          </tr>
+          <tr>
+            <td><strong>Agent</strong></td>
+            <td>LLM이 상황에 따라 다음 행동과 Tool을 선택</td>
+          </tr>
+          <tr>
+            <td><strong>MCP</strong></td>
+            <td>AI 애플리케이션과 외부 Tool/Data 연결 방식 표준화</td>
+          </tr>
+          <tr>
+            <td><strong>MCP Server</strong></td>
+            <td>MCP 규격으로 Tool/Data를 외부에 제공</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        Workflow와 Agent 차이가 특히 중요합니다. Anthropic의 공식 구분에서도 Workflow는 코드가
+        미리 정의한 경로로 LLM과 Tool을 오케스트레이션하는 시스템이고, Agent는 LLM이 Tool 사용과
+        실행 과정을 동적으로 결정하는 시스템입니다.
+        (<a href="https://www.anthropic.com/engineering/building-effective-agents" target="_blank" rel="noreferrer">Anthropic — Building effective agents</a>)
+      </p>
+    </section>
+
+    <section id="section-11">
+      <h2>11. 코드로 보면 더 명확합니다</h2>
+
+      <h3>일반 Workflow</h3>
+
+      <p>개발자가 순서를 정합니다.</p>
+
+      <pre><code>const logs = await getLogs();
+const queries = await getSlowQueries();
+const explanation = await llm.analyze(logs, queries);
+
+return explanation;</code></pre>
+
+      <p>LLM은:</p>
+
+      <pre>getLogs 할까?
+getSlowQueries 할까?</pre>
+
+      <p>를 결정하지 않습니다.</p>
+
+      <p>코드가 결정합니다.</p>
+
+      <h3>Agent</h3>
+
+      <pre>Available Tools
+
+- getLogs
+- getSlowQueries
+- explainQuery
+- getDeployments</pre>
+
+      <p>만 제공해놓고:</p>
+
+      <pre>API가 느려진 원인을 조사해라.</pre>
+
+      <p>라는 Goal을 줍니다.</p>
+
+      <p>이제 LLM이:</p>
+
+      <div class="diagram">
+        <pre>getLogs부터 호출
+        ↓
+결과 판단
+        ↓
+getSlowQueries 호출
+        ↓
+결과 판단
+        ↓
+explainQuery 호출
+        ↓
+최종 답변</pre>
+      </div>
+
+      <p>을 결정합니다.</p>
+
+      <p>
+        이 <strong>제어권의 일부가 코드에서 LLM으로 이동했다</strong>는 것이 Agent를 이해하는
+        가장 중요한 포인트입니다. Anthropic도 최근 Agent 설명에서 사람은 무엇을 달성할지를 정하고
+        Agent가 어떻게 달성할지를 결정하는 구조로 설명하고 있습니다.
+        (<a href="https://www.anthropic.com/research/claude-code-expertise" target="_blank" rel="noreferrer">Anthropic — Claude Code expertise</a>)
+      </p>
+    </section>
+
+    <section id="section-12">
+      <h2>12. MCP를 코드 관점으로 바꾸면</h2>
+
+      <p>기존에는 Agent 프로젝트 내부에:</p>
+
+      <pre>src/
+ └─ tools/
+     ├─ database.ts
+     ├─ docker.ts
+     └─ github.ts</pre>
+
+      <p>가 있을 수 있습니다.</p>
+
+      <p>MCP로 분리하면:</p>
+
+      <pre>database-mcp-server
+ └─ Tools
+     ├─ query
+     └─ explain
+
+
+docker-mcp-server
+ └─ Tools
+     ├─ logs
+     └─ status
+
+
+AI Agent
+ └─ MCP Client</pre>
+
+      <p>가 됩니다.</p>
+
+      <p>그러면 Database MCP Server는 특정 Agent에 종속되지 않습니다.</p>
+
+      <div class="diagram">
+        <pre>             ┌─ Agent A
+             │
+Database MCP ├─ Agent B
+             │
+             ├─ Claude
+             │
+             └─ VS Code</pre>
+      </div>
+
+      <p>
+        이 <strong>재사용 가능한 표준 Integration Layer</strong>가 MCP의 가치입니다.
+        MCP 공식 문서도 한 번 구축한 MCP Server를 여러 지원 AI Client에 통합할 수 있다는 점을
+        주요 장점으로 설명합니다.
+        (<a href="https://modelcontextprotocol.io/docs/getting-started/intro" target="_blank" rel="noreferrer">Model Context Protocol — Introduction</a>)
+      </p>
+    </section>
+
+    <section id="section-13">
+      <h2>13. 지금 단계에서는 이렇게 공부하시는 게 가장 낫습니다</h2>
+
+      <p>처음부터 MCP + Multi-Agent + RAG를 전부 섞으면 개념이 더 꼬입니다.</p>
+
+      <p>제가 권하는 순서는:</p>
+
+      <div class="diagram">
+        <pre>① LLM
+        ↓
+② Function / Tool Calling
+        ↓
+③ Agent Loop
+        ↓
+④ MCP
+        ↓
+⑤ Agent + MCP
+        ↓
+⑥ Guardrail / Human Approval
+        ↓
+⑦ Multi-Agent</pre>
+      </div>
+
+      <p>입니다.</p>
+
+      <p>특히 <strong>② → ③ → ④</strong>를 분리해서 직접 구현해 보면 금방 명확해집니다.</p>
+
+      <pre>Phase 1
+LLM이 직접 만든 Function Tool 호출
+
+Phase 2
+LLM이 Tool 결과를 보고
+다음 Tool을 결정하는 Agent 구현
+
+Phase 3
+기존 Tool을 MCP Server로 분리
+
+Phase 4
+Agent가 MCP Client로 MCP Server 사용</pre>
+
+      <p>이렇게 하면 마지막에는 같은 기능이:</p>
+
+      <div class="diagram">
+        <pre>직접 Function Calling
+        ↓
+Agent Tool
+        ↓
+MCP Tool</pre>
+      </div>
+
+      <p>로 어떻게 변하는지 직접 비교할 수 있습니다.</p>
+    </section>
+
+    <section id="final-model">
+      <h2>최종적으로 머릿속에 이 구조만 남기시면 됩니다</h2>
+
+      <div class="diagram">
+        <pre>                 ┌───────────────┐
+                 │     User      │
+                 └───────┬───────┘
+                         │ Goal
+                         ▼
+                 ┌───────────────┐
+                 │   AI Agent    │
+                 │               │
+                 │ LLM + Loop    │
+                 │               │
+                 │ "무엇을 할지" │
+                 │     판단      │
+                 └───────┬───────┘
+                         │
+                        MCP
+                         │
+           ┌─────────────┼─────────────┐
+           ▼             ▼             ▼
+      ┌─────────┐   ┌─────────┐   ┌─────────┐
+      │ DB MCP  │   │Git MCP  │   │Docker   │
+      │ Server  │   │ Server  │   │MCP      │
+      └────┬────┘   └────┬────┘   └────┬────┘
+           │             │             │
+           ▼             ▼             ▼
+      PostgreSQL       GitHub        Docker</pre>
+      </div>
+
+      <div class="card">
+        <p><span class="key">Agent는 판단합니다.</span></p>
+        <p><span class="key">Tool은 행동합니다.</span></p>
+        <p><span class="key">MCP는 Agent/AI와 Tool 사이의 연결 방법을 표준화합니다.</span></p>
+      </div>
+
+      <p>이 세 문장을 기준으로 잡으시면 됩니다.</p>
+    </section>
+
+    <section id="sources">
+      <h2>공식 자료</h2>
+
+      <p>
+        MCP는 현재 <code>2026-07-28</code> 문서가 최신 공식 문서이며, MCP 공식 소개와
+        아키텍처 문서가 개념 확인에 가장 적합합니다.
+        (<a href="https://modelcontextprotocol.io/docs/getting-started/intro" target="_blank" rel="noreferrer">Model Context Protocol — Introduction</a>)
+        Agent 쪽은 OpenAI Agents SDK의 Agent Loop 문서와 Anthropic의 Agent/Workflow 구분 문서가
+        실제 구현 개념을 확인하기 좋습니다.
+        (<a href="https://openai.github.io/openai-agents-js/guides/running-agents/" target="_blank" rel="noreferrer">OpenAI Agents SDK — Running agents</a>)
+      </p>
+
+      <p>
+        이 상태에서 바로 MCP 프로젝트를 시작하기보다는
+        <strong><code>Tool Calling → Agent → MCP</code>를 각각 아주 작은 Node.js 코드로 직접 만들어보는
+        3단계 학습 프로젝트</strong>부터 하는 것이 개념을 잡는 데 가장 효과적입니다.
+      </p>
+
+      <ul class="source-list">
+        <li>
+          <a href="https://modelcontextprotocol.io/docs/getting-started/intro" target="_blank" rel="noreferrer">
+            Model Context Protocol — Introduction
+          </a>
+        </li>
+        <li>
+          <a href="https://modelcontextprotocol.io/docs/learn/architecture" target="_blank" rel="noreferrer">
+            Model Context Protocol — Architecture
+          </a>
+        </li>
+        <li>
+          <a href="https://openai.github.io/openai-agents-js/guides/running-agents/" target="_blank" rel="noreferrer">
+            OpenAI Agents SDK — Running agents
+          </a>
+        </li>
+        <li>
+          <a href="https://openai.github.io/openai-agents-python/handoffs/" target="_blank" rel="noreferrer">
+            OpenAI Agents SDK — Handoffs
+          </a>
+        </li>
+        <li>
+          <a href="https://www.anthropic.com/engineering/building-effective-agents" target="_blank" rel="noreferrer">
+            Anthropic — Building effective agents
+          </a>
+        </li>
+        <li>
+          <a href="https://www.anthropic.com/research/claude-code-expertise" target="_blank" rel="noreferrer">
+            Anthropic — Claude Code expertise
+          </a>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <div class="layout">
+      MCP와 AI Agent 개념 학습용 단일 HTML 문서
+    </div>
+  </footer>
+</body>
+</html>
