@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Backend Diagnostics Phase 1 Tool Calling 실습 화면"
+    />
+    <title>Backend Diagnostics / Phase 1</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="layout">
+      <header class="masthead">
+        <p class="eyebrow">MCP &amp; AI AGENT LAB / 01</p>
+        <h1>BACKEND<br />DIAGNOSTICS</h1>
+        <p class="subtitle">PHASE 1 — RESPONSES API FUNCTION TOOL CALLING</p>
+      </header>
+
+      <section class="panel" aria-labelledby="question-title">
+        <h2 id="question-title">질문 입력</h2>
+        <form id="diagnostic-form">
+          <label for="question">DIAGNOSTIC QUESTION</label>
+          <textarea id="question" name="question" required maxlength="500">order-api 상태를 확인해줘.</textarea>
+          <p class="helper">Backend Diagnostics API를 조회하는 단일 Function Tool을 선택합니다.</p>
+          <button type="submit">RUN TOOL CALL</button>
+        </form>
+      </section>
+
+      <section class="panel" aria-labelledby="result-title" aria-live="polite">
+        <div class="result-heading">
+          <h2 id="result-title">실행 결과</h2>
+          <span id="run-state" class="status-chip">READY</span>
+        </div>
+        <p id="result-summary" class="empty-state">질문을 실행하면 실제 응답을 표시합니다.</p>
+        <dl id="observation" class="observation" hidden>
+          <div><dt>SELECTED TOOL</dt><dd id="selected-tool"></dd></div>
+          <div><dt>TOOL ARGUMENTS</dt><dd><pre id="tool-arguments"></pre></dd></div>
+          <div><dt>TOOL RESULT</dt><dd><pre id="tool-result"></pre></dd></div>
+          <div><dt>TOOL LATENCY</dt><dd id="tool-latency"></dd></div>
+          <div><dt>USAGE</dt><dd id="usage"></dd></div>
+        </dl>
+      </section>
+    </main>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

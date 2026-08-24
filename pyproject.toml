@@ -1,0 +1,27 @@
+[project]
+name = "mcp-ai-agent-lab"
+version = "0.1.0"
+description = "Phase 1 Tool Calling practice application"
+readme = "README.md"
+requires-python = "==3.13.14"
+dependencies = [
+    "fastapi==0.141.1",
+    "httpx==0.28.1",
+    "openai==3.2.0",
+    "pydantic>=2.12,<3",
+    "uvicorn[standard]>=0.38,<0.39",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9,<10",
+    "pytest-asyncio>=1.4,<2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
