@@ -78,6 +78,41 @@ AI Agent의 외부 시스템 연결 수단 중 하나로 MCP 사용
              Backend Diagnostics
 ```
 
+## 프로젝트 구조
+```
+mcp-ai-agent-lab/
+├── AGENTS.md
+├── README.md
+├── pyproject.toml
+├── uv.lock
+├── .python-version
+├── .env.example
+├── .gitignore
+├── docs/
+│   ├── index.html
+│   ├── plan.md
+│   ├── instructions/
+│   │   ├── phase1-tool-calling.md
+│   │   ├── phase2-agent-loop.md
+│   │   ├── phase3-mcp-server.md
+│   │   ├── phase4-agent-mcp.md
+│   │   ├── phase5-human-approval.md
+│   │   └── phase6-multi-agent.md
+│   ├── phase1-tool-calling.md
+│   ├── phase2-agent-loop.md
+│   ├── phase3-mcp-server.md
+│   ├── phase4-agent-mcp.md
+│   ├── phase5-human-approval.md
+│   └── phase6-multi-agent.md
+├── src/
+│   └── mcp_ai_agent_lab/
+├── fixtures/
+├── evaluation/
+│   ├── cases.json
+│   └── results/
+└── tests/
+```
+
 ## 학습 순서
 
 ```text
