@@ -83,14 +83,16 @@ AI Agent의 외부 시스템 연결 수단 중 하나로 MCP 사용
 mcp-ai-agent-lab/
 ├── AGENTS.md
 ├── README.md
+├── design.md
 ├── pyproject.toml
 ├── uv.lock
 ├── .python-version
 ├── .env.example
 ├── .gitignore
+├── .project/
+│   └── plan.md
 ├── docs/
 │   ├── index.html
-│   ├── plan.md
 │   ├── instructions/
 │   │   ├── phase1-tool-calling.md
 │   │   ├── phase2-agent-loop.md
@@ -104,6 +106,10 @@ mcp-ai-agent-lab/
 │   ├── phase4-agent-mcp.md
 │   ├── phase5-human-approval.md
 │   └── phase6-multi-agent.md
+├── web/
+│   ├── index.html
+│   ├── styles.css
+│   └── app.js
 ├── src/
 │   └── mcp_ai_agent_lab/
 ├── fixtures/
