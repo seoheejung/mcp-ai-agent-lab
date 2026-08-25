@@ -3,31 +3,33 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Backend Diagnostics Phase 5 Human Approval" />
-    <title>Backend Diagnostics / Phase 5</title>
+    <meta name="description" content="Backend Diagnostics Phase 6 Multi-Agent" />
+    <title>Backend Diagnostics / Phase 6</title>
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
     <main class="layout">
       <header class="masthead">
-        <p class="eyebrow">MCP &amp; AI AGENT LAB / 05</p>
+        <p class="eyebrow">MCP &amp; AI AGENT LAB / 06</p>
         <h1>BACKEND<br />DIAGNOSTICS</h1>
-        <p class="subtitle">PHASE 5 / HUMAN APPROVAL</p>
+        <p class="subtitle">PHASE 6 / DIAGNOSTICS → OPERATIONS</p>
       </header>
 
-      <section class="panel" aria-labelledby="question-title">
-        <h2 id="question-title">RESTART REQUEST</h2>
-        <p class="helper">order-api의 응답이 느려졌어. 원인을 조사한 뒤 재시작해줘.</p>
-        <button id="start-run" type="button">START APPROVAL RUN</button>
+      <section class="panel" aria-labelledby="experiment-title">
+        <h2 id="experiment-title">MULTI-AGENT EXPERIMENTS</h2>
+        <p class="helper">명시적 Handoff와 자율 판단 실험은 각각 fixture를 degraded로 초기화해 독립적으로 실행합니다.</p>
+        <div class="button-row">
+          <button data-experiment="explicit_handoff" type="button">RUN EXPLICIT HANDOFF</button>
+          <button data-experiment="autonomous_decision" type="button">RUN AUTONOMOUS DECISION</button>
+        </div>
       </section>
 
       <section class="panel" aria-labelledby="result-title" aria-live="polite">
         <div class="result-heading">
-          <h2 id="result-title">RUN STATE</h2>
+          <h2 id="result-title">HANDOFF &amp; APPROVAL STATE</h2>
           <span id="run-state" class="status-chip">READY</span>
         </div>
-        <p id="result-summary" class="empty-state">실행하면 restart_service 승인 요청과 결과를 표시합니다.</p>
-
+        <p id="result-summary" class="empty-state">실험을 선택하면 Agent 권한, Handoff, 승인 상태를 표시합니다.</p>
         <div id="approval-request" class="approval-request" hidden>
           <h3>HUMAN APPROVAL REQUIRED</h3>
           <p id="approval-detail" class="report-summary"></p>
@@ -36,11 +38,12 @@
             <button id="reject-run" class="destructive" type="button">REJECT RESTART</button>
           </div>
         </div>
-
         <article id="run-result" class="execution-card" hidden aria-labelledby="run-result-title">
           <h3 id="run-result-title">EXECUTION RESULT</h3>
           <p id="report-summary" class="report-summary"></p>
           <dl class="observation">
+            <div><dt>EXPERIMENT</dt><dd id="experiment"></dd></div>
+            <div><dt>HANDOFFS</dt><dd id="handoffs"></dd></div>
             <div><dt>FIXTURE STATUS</dt><dd id="fixture-status"></dd></div>
             <div><dt>APPROVAL</dt><dd id="approval-state"></dd></div>
             <div><dt>TOOL CALLS</dt><dd><pre id="tool-calls"></pre></dd></div>
@@ -48,7 +51,6 @@
             <div><dt>TOKEN USAGE</dt><dd id="usage"></dd></div>
             <div><dt>END-TO-END TIME</dt><dd id="end-to-end"></dd></div>
             <div><dt>APPROVAL WAIT</dt><dd id="approval-wait"></dd></div>
-            <div><dt>REQUIRED EVIDENCE</dt><dd id="evidence"></dd></div>
             <div><dt>TRACE</dt><dd id="trace"></dd></div>
           </dl>
         </article>

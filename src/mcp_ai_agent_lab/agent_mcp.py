@@ -40,10 +40,12 @@ class RecordingMCPServerStdio(MCPServerStdio):
         self,
         *args: Any,
         observations: list[ToolObservation],
+        agent_name: str | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(*args, **kwargs)
         self._observations = observations
+        self._agent_name = agent_name
 
     async def call_tool(
         self,
@@ -62,6 +64,7 @@ class RecordingMCPServerStdio(MCPServerStdio):
                 tool_arguments=arguments or {},
                 tool_result=structured_content,
                 tool_latency_ms=(perf_counter() - started_at) * 1000,
+                agent_name=self._agent_name,
             )
         )
         return result

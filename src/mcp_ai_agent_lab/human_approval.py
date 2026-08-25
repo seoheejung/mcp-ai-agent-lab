@@ -55,7 +55,7 @@ class Phase5HumanApprovalRunner:
         self._settings = settings
         self._pending_runs: dict[str, PendingApprovalRun] = {}
 
-    async def start(self) -> ApprovalRunResult:
+    async def start(self, question: str = PHASE5_QUESTION) -> ApprovalRunResult:
         fixture_state.reset()
         observations: list[ToolObservation] = []
         server = self._server(observations)
@@ -66,7 +66,7 @@ class Phase5HumanApprovalRunner:
             with trace("phase5_human_approval") as agent_trace:
                 result = await Runner.run(
                     agent,
-                    PHASE5_QUESTION,
+                    question,
                     run_config=self._run_config(),
                 )
             if not result.interruptions:

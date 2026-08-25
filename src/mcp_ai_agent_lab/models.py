@@ -58,6 +58,7 @@ class ToolObservation(StrictModel):
     tool_arguments: dict[str, object]
     tool_result: dict[str, object]
     tool_latency_ms: float = Field(ge=0)
+    agent_name: str | None = None
 
 
 class DiagnosticRunResult(StrictModel):
@@ -141,3 +142,13 @@ class ApprovalRunResult(StrictModel):
     required_evidence: list[str]
     trace: TraceObservation | None
     service_status: ServiceStatus
+
+
+class HandoffObservation(StrictModel):
+    from_agent: str
+    to_agent: str
+
+
+class MultiAgentRunResult(ApprovalRunResult):
+    experiment: Literal["explicit_handoff", "autonomous_decision"]
+    handoffs: list[HandoffObservation]
