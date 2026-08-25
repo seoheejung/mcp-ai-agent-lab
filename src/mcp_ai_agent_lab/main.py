@@ -6,19 +6,24 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from .agent_mcp import Phase4AgentMcpRunner
 from .backend import register_diagnostics_routes
+from .backend_client import DiagnosticsClient
 from .config import Settings
 from .errors import ApplicationError
-from .mcp_client import Phase3McpClient
-from .models import McpVerificationResult
+from .models import AgentMcpComparisonResult
+from .tools import FunctionTools
 
 WEB_DIRECTORY = Path(__file__).resolve().parents[2] / "web"
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
-    app = FastAPI(title="Backend Diagnostics — Phase 3 MCP Server")
+    app = FastAPI(title="Backend Diagnostics — Phase 4 Agent + MCP")
     active_settings = settings or Settings.from_environment()
-    app.state.phase3_mcp_client = Phase3McpClient(active_settings)
+    app.state.phase4_runner = Phase4AgentMcpRunner(
+        active_settings,
+        FunctionTools(DiagnosticsClient(active_settings.backend_base_url)),
+    )
 
     @app.exception_handler(ApplicationError)
     async def application_error_handler(_, error: ApplicationError) -> JSONResponse:
@@ -34,9 +39,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def web_application() -> FileResponse:
         return FileResponse(WEB_DIRECTORY / "index.html")
 
-    @app.post("/api/mcp/verification", response_model=McpVerificationResult)
-    async def verify_mcp() -> McpVerificationResult:
-        return await app.state.phase3_mcp_client.verify()
+    @app.post("/api/agent-mcp/comparison", response_model=AgentMcpComparisonResult)
+    async def compare_agent_mcp() -> AgentMcpComparisonResult:
+        return await app.state.phase4_runner.run(
+            "order-api의 응답이 느려졌어. 원인을 조사해줘."
+        )
 
     return app
 

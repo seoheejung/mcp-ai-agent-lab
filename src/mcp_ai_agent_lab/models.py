@@ -104,3 +104,13 @@ class McpVerificationResult(StrictModel):
     tools: list[McpToolDefinition]
     tool_calls: list[McpToolCallResult]
     end_to_end_ms: float = Field(ge=0)
+
+
+class AgentMcpExecutionResult(DiagnosticExecutionResult):
+    success: bool
+
+
+class AgentMcpComparisonResult(StrictModel):
+    question: str
+    local_function: AgentMcpExecutionResult
+    mcp: AgentMcpExecutionResult

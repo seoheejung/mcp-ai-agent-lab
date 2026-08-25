@@ -38,6 +38,13 @@ REQUIRED_TOOL_NAMES = (
     "get_recent_metrics",
     "get_recent_logs",
 )
+DIAGNOSTICS_AGENT_NAME = "Diagnostics Agent"
+DIAGNOSTICS_AGENT_INSTRUCTIONS = (
+    "Investigate the user's diagnostics question. Gather service_status, metrics, "
+    "and logs with the available read-only function tools before producing the "
+    "structured diagnostic report. You choose the tool-call order. Do not use "
+    "handoffs, memory, approval, write operations, or any unavailable tool."
+)
 
 
 class TraceRecorder(TracingProcessor):
@@ -169,13 +176,8 @@ class Phase2DiagnosticsRunner:
             )
 
         agent = Agent(
-            name="Diagnostics Agent",
-            instructions=(
-                "Investigate the user's diagnostics question. Gather service_status, metrics, "
-                "and logs with the available read-only function tools before producing the "
-                "structured diagnostic report. You choose the tool-call order. Do not use "
-                "handoffs, memory, approval, write operations, or any unavailable tool."
-            ),
+            name=DIAGNOSTICS_AGENT_NAME,
+            instructions=DIAGNOSTICS_AGENT_INSTRUCTIONS,
             tools=[get_service_status, get_recent_metrics, get_recent_logs],
             model=OpenAIResponsesModel(model, AsyncOpenAI(api_key=api_key)),
             model_settings=ModelSettings(preserve_raw_usage=True),
