@@ -61,5 +61,26 @@ class DiagnosticRunResult(StrictModel):
     usage: ResponseUsage | None
 
 
+class TraceObservation(StrictModel):
+    trace_id: str
+    span_types: list[str]
+
+
+class DiagnosticExecutionResult(StrictModel):
+    report: DiagnosticReport
+    tool_calls: list[ToolObservation]
+    llm_requests: int
+    usage: ResponseUsage | None
+    end_to_end_ms: float = Field(ge=0)
+    required_evidence: list[str]
+    trace: TraceObservation | None
+
+
+class DiagnosticComparisonResult(StrictModel):
+    question: str
+    workflow: DiagnosticExecutionResult
+    agent: DiagnosticExecutionResult
+
+
 class StreamingCheckResult(StrictModel):
     event_types: list[str]

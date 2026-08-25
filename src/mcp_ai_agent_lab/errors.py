@@ -36,3 +36,8 @@ class StructuredOutputError(ApplicationError):
 class LlmResponseError(ApplicationError):
     status_code = 502
     error_type = "llm_response_error"
+
+
+class AgentRunError(ApplicationError):
+    status_code = 502
+    error_type = "agent_run_error"
