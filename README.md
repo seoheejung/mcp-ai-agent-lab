@@ -169,6 +169,106 @@ MCP, Multi-Agent, RAG 동시 구성 제외
 | Async Test      | pytest-asyncio           |
 | Package Manager | uv                       |
 
+## 프로젝트 실행 방법
+
+### 사전 준비
+
+* Python 3.13.14
+* uv
+* OpenAI API Key
+
+Python 버전 확인:
+
+```powershell
+python --version
+```
+
+```text
+Python 3.13.14
+```
+
+uv 버전 확인:
+
+```powershell
+uv --version
+```
+
+### 의존성 설치
+
+저장소 루트에서 실행:
+
+```powershell
+uv sync
+```
+
+Lock 파일 상태 확인:
+
+```powershell
+uv lock --check
+```
+
+### 환경 변수 설정
+
+현재 PowerShell 세션에 OpenAI 환경 변수 설정:
+
+```powershell
+$env:OPENAI_API_KEY="발급받은 API Key"
+$env:OPENAI_MODEL="사용할 OpenAI 모델"
+```
+
+설정 여부 확인:
+
+```powershell
+Write-Output "OPENAI_API_KEY=$([bool]$env:OPENAI_API_KEY)"
+Write-Output "OPENAI_MODEL=$([bool]$env:OPENAI_MODEL)"
+```
+
+정상 상태:
+
+```text
+OPENAI_API_KEY=True
+OPENAI_MODEL=True
+```
+
+API Key는 코드, `.env.example`, Git 저장소에 저장하지 않는다.
+
+### 애플리케이션 실행
+
+FastAPI 애플리케이션 실행:
+
+```powershell
+uv run uvicorn mcp_ai_agent_lab.main:app --reload
+```
+
+기본 접속:
+
+```text
+http://127.0.0.1:8000
+```
+
+웹 화면에서 구현된 Phase의 Tool Calling 또는 Workflow·Agent 비교 기능 실행 가능.
+
+### 테스트
+
+전체 테스트 실행:
+
+```powershell
+uv run pytest
+```
+
+현재 Phase 완료 여부는 테스트 성공만으로 판단하지 않고 실제 OpenAI API 실행, Usage, Tool 결과, Trace 등 해당 Phase 지침서의 검증 조건까지 확인한다.
+
+### 종료
+
+Uvicorn 실행 터미널에서:
+
+```text
+Ctrl + C
+```
+
+실행 종료 후 별도 임시 서버 프로세스가 남아 있지 않은지 확인한다.
+
+
 ## 검증 기준
 
 Phase별 기능 구현 외 항목 포함 검증
