@@ -55,6 +55,7 @@ async def test_stdio_mcp_discovery_calls_and_error_propagation() -> None:
             "get_service_status",
             "get_recent_metrics",
             "get_recent_logs",
+            "restart_service",
         ]
         assert result.tools[0].input_schema["required"] == ["service"]
         assert result.tools[0].output_schema["type"] == "object"
@@ -64,6 +65,7 @@ async def test_stdio_mcp_discovery_calls_and_error_propagation() -> None:
             "minimum": 1,
             "type": "integer",
         }
+        assert result.tools[3].input_schema["required"] == ["service"]
         assert result.tool_calls[0].tool_result["status"] == "degraded"
         assert result.tool_calls[1].tool_result["latency_ms"] == 842
         assert result.tool_calls[2].tool_result["entries"][0]["message"] == (

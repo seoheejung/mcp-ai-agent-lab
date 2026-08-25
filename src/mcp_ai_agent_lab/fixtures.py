@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from .models import LogEntry, ServiceLogs, ServiceMetrics, ServiceStatus
+from .models import LogEntry, RestartResult, ServiceLogs, ServiceMetrics, ServiceStatus
 
 SERVICE_NAME = "order-api"
 
-SERVICE_STATUS = ServiceStatus(
+INITIAL_SERVICE_STATUS = ServiceStatus(
     service=SERVICE_NAME,
     status="degraded",
     checked_at="2026-08-25T09:00:00+09:00",
@@ -33,3 +33,22 @@ SERVICE_LOGS = ServiceLogs(
         ),
     ],
 )
+
+
+class DiagnosticsFixture:
+    def __init__(self) -> None:
+        self._status = INITIAL_SERVICE_STATUS
+
+    def reset(self) -> ServiceStatus:
+        self._status = INITIAL_SERVICE_STATUS
+        return self._status
+
+    def status(self) -> ServiceStatus:
+        return self._status
+
+    def restart(self) -> RestartResult:
+        self._status = self._status.model_copy(update={"status": "healthy"})
+        return RestartResult(service=SERVICE_NAME, status="healthy")
+
+
+fixture_state = DiagnosticsFixture()

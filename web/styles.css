@@ -42,6 +42,7 @@ button:disabled { border-color: #ccc; background: #f5f5f5; color: #777; cursor: 
 .result-heading { align-items: start; display: flex; gap: 16px; justify-content: space-between; }
 .status-chip { border: 2px solid #000; font-size: 11px; padding: 2px 10px; white-space: nowrap; }
 .status-chip.success { border-color: #008000; color: #008000; }
+.status-chip.warning { border-color: #ffa500; color: #ffa500; }
 .status-chip.error { border-color: #f00; color: #f00; }
 .empty-state { font-size: 16px; margin: 32px 0 0; }
 .error-message { color: #f00; font-weight: 700; }
@@ -54,6 +55,10 @@ pre { background: #f0f0f0; border: 1px solid #000; border-radius: 0; margin: 0; 
 .comparison { display: grid; gap: 24px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 32px; }
 #verification { display: grid; gap: 24px; margin-top: 32px; }
 .execution-card { border: 3px solid #000; padding: 24px; }
+.approval-request { border: 5px solid #000; margin-top: 32px; padding: 24px; }
+.button-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+button.destructive { background: #f00; }
+button.destructive:hover { background: #000; color: #f00; }
 h3 { font-family: "Archivo Black", sans-serif; font-size: 28px; line-height: 1.1; margin: 0; }
 .flow { border-bottom: 3px solid #000; font: 12px/1.5 "Space Mono", monospace; margin: 16px 0; padding-bottom: 12px; }
 .report-summary { font-weight: 700; line-height: 1.6; margin: 0; }

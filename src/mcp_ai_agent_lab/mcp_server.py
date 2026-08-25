@@ -7,7 +7,7 @@ from pydantic import Field
 
 from .backend_client import DiagnosticsClient
 from .config import Settings
-from .models import ServiceLogs, ServiceMetrics, ServiceStatus
+from .models import RestartResult, ServiceLogs, ServiceMetrics, ServiceStatus
 
 mcp = FastMCP("Backend Diagnostics MCP Server")
 
@@ -35,6 +35,12 @@ async def get_recent_logs(
 ) -> ServiceLogs:
     """Get recent error and warning logs for one service."""
     return await _client().get_recent_logs(service, limit)
+
+
+@mcp.tool()
+async def restart_service(service: str) -> RestartResult:
+    """Restart one degraded service after human approval."""
+    return await _client().restart_service(service)
 
 
 if __name__ == "__main__":

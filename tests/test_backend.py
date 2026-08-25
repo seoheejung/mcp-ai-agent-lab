@@ -1,11 +1,13 @@
 import httpx
 import pytest
 
+from mcp_ai_agent_lab.fixtures import fixture_state
 from mcp_ai_agent_lab.main import create_app
 
 
 @pytest.mark.asyncio
 async def test_status_fixture_is_degraded() -> None:
+    fixture_state.reset()
     app = create_app()
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
@@ -18,6 +20,7 @@ async def test_status_fixture_is_degraded() -> None:
 
 @pytest.mark.asyncio
 async def test_metrics_fixture_has_required_measurements() -> None:
+    fixture_state.reset()
     app = create_app()
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
@@ -30,6 +33,7 @@ async def test_metrics_fixture_has_required_measurements() -> None:
 
 @pytest.mark.asyncio
 async def test_logs_support_limit_validation() -> None:
+    fixture_state.reset()
     app = create_app()
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
@@ -43,6 +47,7 @@ async def test_logs_support_limit_validation() -> None:
 
 @pytest.mark.asyncio
 async def test_unknown_service_returns_404() -> None:
+    fixture_state.reset()
     app = create_app()
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
@@ -50,3 +55,19 @@ async def test_unknown_service_returns_404() -> None:
         response = await client.get("/services/unknown-api/status")
 
     assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_restart_changes_the_fixture_to_healthy() -> None:
+    fixture_state.reset()
+    app = create_app()
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        restarted = await client.post("/services/order-api/restart")
+        status = await client.get("/services/order-api/status")
+
+    assert restarted.status_code == 200
+    assert restarted.json()["status"] == "healthy"
+    assert status.json()["status"] == "healthy"
+    fixture_state.reset()

@@ -6,24 +6,19 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from .agent_mcp import Phase4AgentMcpRunner
 from .backend import register_diagnostics_routes
-from .backend_client import DiagnosticsClient
 from .config import Settings
 from .errors import ApplicationError
-from .models import AgentMcpComparisonResult
-from .tools import FunctionTools
+from .human_approval import Phase5HumanApprovalRunner
+from .models import ApprovalRunResult
 
 WEB_DIRECTORY = Path(__file__).resolve().parents[2] / "web"
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
-    app = FastAPI(title="Backend Diagnostics — Phase 4 Agent + MCP")
+    app = FastAPI(title="Backend Diagnostics — Phase 5 Human Approval")
     active_settings = settings or Settings.from_environment()
-    app.state.phase4_runner = Phase4AgentMcpRunner(
-        active_settings,
-        FunctionTools(DiagnosticsClient(active_settings.backend_base_url)),
-    )
+    app.state.phase5_runner = Phase5HumanApprovalRunner(active_settings)
 
     @app.exception_handler(ApplicationError)
     async def application_error_handler(_, error: ApplicationError) -> JSONResponse:
@@ -39,11 +34,23 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def web_application() -> FileResponse:
         return FileResponse(WEB_DIRECTORY / "index.html")
 
-    @app.post("/api/agent-mcp/comparison", response_model=AgentMcpComparisonResult)
-    async def compare_agent_mcp() -> AgentMcpComparisonResult:
-        return await app.state.phase4_runner.run(
-            "order-api의 응답이 느려졌어. 원인을 조사해줘."
-        )
+    @app.post("/api/human-approval/start", response_model=ApprovalRunResult)
+    async def start_human_approval() -> ApprovalRunResult:
+        return await app.state.phase5_runner.start()
+
+    @app.post(
+        "/api/human-approval/{run_id}/approve",
+        response_model=ApprovalRunResult,
+    )
+    async def approve_human_approval(run_id: str) -> ApprovalRunResult:
+        return await app.state.phase5_runner.resume(run_id, "approved")
+
+    @app.post(
+        "/api/human-approval/{run_id}/reject",
+        response_model=ApprovalRunResult,
+    )
+    async def reject_human_approval(run_id: str) -> ApprovalRunResult:
+        return await app.state.phase5_runner.resume(run_id, "rejected")
 
     return app
 

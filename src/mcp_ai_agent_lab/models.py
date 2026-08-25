@@ -12,7 +12,7 @@ class StrictModel(BaseModel):
 
 class ServiceStatus(StrictModel):
     service: str
-    status: Literal["degraded"]
+    status: Literal["degraded", "healthy"]
     checked_at: datetime
 
 
@@ -33,6 +33,11 @@ class LogEntry(StrictModel):
 class ServiceLogs(StrictModel):
     service: str
     entries: list[LogEntry]
+
+
+class RestartResult(StrictModel):
+    service: str
+    status: Literal["healthy"]
 
 
 class DiagnosticReport(StrictModel):
@@ -114,3 +119,25 @@ class AgentMcpComparisonResult(StrictModel):
     question: str
     local_function: AgentMcpExecutionResult
     mcp: AgentMcpExecutionResult
+
+
+class ApprovalRequest(StrictModel):
+    tool_name: str
+    tool_arguments: dict[str, object]
+
+
+class ApprovalRunResult(StrictModel):
+    run_id: str
+    state: Literal["pending_approval", "completed"]
+    approval: ApprovalRequest | None
+    approval_count: int = Field(ge=0)
+    approval_decision: Literal["approved", "rejected"] | None
+    report: DiagnosticReport | None
+    tool_calls: list[ToolObservation]
+    llm_requests: int = Field(ge=0)
+    usage: ResponseUsage | None
+    end_to_end_ms: float = Field(ge=0)
+    approval_wait_ms: float = Field(ge=0)
+    required_evidence: list[str]
+    trace: TraceObservation | None
+    service_status: ServiceStatus

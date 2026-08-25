@@ -51,3 +51,8 @@ class McpConnectionError(ApplicationError):
 class McpToolError(ApplicationError):
     status_code = 502
     error_type = "mcp_tool_error"
+
+
+class ApprovalRejectionError(ApplicationError):
+    status_code = 409
+    error_type = "approval_rejection"

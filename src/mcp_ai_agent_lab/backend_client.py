@@ -5,7 +5,7 @@ from typing import Any
 import httpx
 
 from .errors import BackendConnectionError, BackendResponseError, ServiceNotFoundError
-from .models import ServiceLogs, ServiceMetrics, ServiceStatus
+from .models import RestartResult, ServiceLogs, ServiceMetrics, ServiceStatus
 
 
 class DiagnosticsClient:
@@ -30,14 +30,29 @@ class DiagnosticsClient:
         payload = await self._get(f"/services/{service}/logs", params={"limit": limit})
         return ServiceLogs.model_validate(payload)
 
+    async def restart_service(self, service: str) -> RestartResult:
+        payload = await self._post(f"/services/{service}/restart")
+        return RestartResult.model_validate(payload)
+
     async def _get(self, path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
+        return await self._request("GET", path, params=params)
+
+    async def _post(self, path: str) -> dict[str, Any]:
+        return await self._request("POST", path)
+
+    async def _request(
+        self,
+        method: str,
+        path: str,
+        params: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         try:
             async with httpx.AsyncClient(
                 base_url=self._base_url,
                 transport=self._transport,
                 timeout=httpx.Timeout(10.0),
             ) as client:
-                response = await client.get(path, params=params)
+                response = await client.request(method, path, params=params)
         except httpx.RequestError as error:
             raise BackendConnectionError("Unable to connect to Backend Diagnostics API") from error
 
