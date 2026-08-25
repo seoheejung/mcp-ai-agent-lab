@@ -84,3 +84,23 @@ class DiagnosticComparisonResult(StrictModel):
 
 class StreamingCheckResult(StrictModel):
     event_types: list[str]
+
+
+class McpToolDefinition(StrictModel):
+    name: str
+    description: str | None
+    input_schema: dict[str, object]
+    output_schema: dict[str, object]
+
+
+class McpToolCallResult(StrictModel):
+    selected_tool: str
+    tool_arguments: dict[str, object]
+    tool_result: dict[str, object]
+    tool_latency_ms: float = Field(ge=0)
+
+
+class McpVerificationResult(StrictModel):
+    tools: list[McpToolDefinition]
+    tool_calls: list[McpToolCallResult]
+    end_to_end_ms: float = Field(ge=0)

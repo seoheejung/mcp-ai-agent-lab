@@ -41,3 +41,13 @@ class LlmResponseError(ApplicationError):
 class AgentRunError(ApplicationError):
     status_code = 502
     error_type = "agent_run_error"
+
+
+class McpConnectionError(ApplicationError):
+    status_code = 503
+    error_type = "mcp_connection_error"
+
+
+class McpToolError(ApplicationError):
+    status_code = 502
+    error_type = "mcp_tool_error"
