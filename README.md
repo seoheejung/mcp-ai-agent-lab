@@ -6,7 +6,7 @@
 
 MCP와 AI Agent의 개념 분리와 역할 이해를 위한 학습 프로젝트
 
-LLM → Tool Calling → Agent Loop → MCP 확장 흐름 기반 학습
+LLM → Tool Calling → Agent Loop → MCP → Human Approval → Multi-Agent 단계별 확장
 
 FastAPI 기반 Backend Diagnostics API 공통 실습 환경 구성
 
@@ -25,9 +25,9 @@ Structured Output, 오류 전파, LLM Usage, Tracing, Human Approval, Handoff �
 | AI Agent       | 상황 기반 후속 행동 및 Tool 선택             |
 | Agent Loop     | Tool 결과 기반 후속 행동 반복 결정            |
 | MCP            | AI 애플리케이션과 외부 Tool·Data 연결 방식 표준화 |
-| MCP Client     | MCP Server 연결 및 Tool·Resource 사용  |
-| MCP Server     | MCP 규격 기반 Tool·Resource 외부 제공     |
-| Human Approval | 민감 Tool 실행 전 사람의 승인·거절 개입         |
+| MCP Client     | MCP Server 연결 및 Tool·Resource·Prompt 사용 |
+| MCP Server     | MCP 규격 기반 Tool·Resource·Prompt 제공 |
+| Human Approval | 승인 대상 Tool 실행 전 사람의 승인·거절 개입 |
 | Handoff        | 현재 Agent에서 다른 Agent로 실행 제어 위임     |
 
 ## 핵심 구분
@@ -54,28 +54,47 @@ AI Agent의 외부 시스템 연결 수단 중 하나로 MCP 사용
 
 ## 프로젝트 구현 구조
 
+```mermaid
+flowchart TD
+    User["User"] --> Agent["LLM / Diagnostics Agent<br/>요청 해석 및 다음 행동 판단"]
+
+    Agent --> Tool["Function Tool<br/>애플리케이션 내부 함수 호출"]
+    Tool --> Backend["Backend Diagnostics API<br/>실제 진단 기능 수행"]
+
+    Agent --> MCP["MCP Client → FastMCP Server<br/>표준화된 Tool 연결"]
+
+    MCP -->|Read Tool| Backend
+
+    MCP -->|Write Tool 요청| Approval["Human Approval<br/>실행 전 승인·거절"]
+    Approval -->|Approve| Write["Write Tool 실행"]
+    Write --> Backend
+    Approval -->|Reject| Stop["Tool 실행 안 함"]
+
+    Agent -->|Handoff| Operations["Operations Agent<br/>운영 작업 담당"]
+    Operations --> MCP
+```
+
+### 흐름 파악
+
 ```text
-                     User
-                       │
-                       ▼
-                  LLM / Agent
-                       │
-          ┌────────────┴────────────┐
-          │                         │
-   Function Tool               MCP Client
-          │                         │
-          │                         ▼
-          │                  FastMCP Server
-          │                         │
-          └────────────┬────────────┘
-                       │
-                     HTTPX
-                       │
-                       ▼
-                    FastAPI
-                       │
-                       ▼
-             Backend Diagnostics
+User
+→ LLM / Diagnostics Agent
+→ 필요한 행동 판단
+
+├─ Function Tool
+│  → 애플리케이션 내부 Tool 직접 호출
+│  → Backend Diagnostics API 실행
+│
+├─ MCP
+│  → MCP Client를 통해 FastMCP Server의 Tool 호출
+│  ├─ Read Tool → Backend Diagnostics API 실행
+│  └─ Write Tool 요청 → Human Approval
+│                      ├─ Approve → Write Tool 실행
+│                      └─ Reject → Tool 실행 안 함
+│
+└─ Handoff
+   → Operations Agent로 실행 제어 위임
+   → Operations Agent가 필요한 MCP Tool 사용
 ```
 
 ## 프로젝트 구조
@@ -93,6 +112,7 @@ mcp-ai-agent-lab/
 │   └── plan.md
 ├── docs/
 │   ├── index.html
+│   ├── index-result.html
 │   ├── instructions/
 │   │   ├── phase1-tool-calling.md
 │   │   ├── phase2-agent-loop.md
@@ -151,6 +171,22 @@ MCP, Multi-Agent, RAG 동시 구성 제외
 | **Phase 4** | Agent + MCP    | Agent의 MCP Tool 사용       |
 | **Phase 5** | Human Approval | Write Tool 승인·거절         |
 | **Phase 6** | Multi-Agent    | Agent 역할·권한 분리 및 Handoff |
+
+## 실행 화면
+
+Phase 6에서는 Diagnostics Agent와 Operations Agent의 Handoff, MCP Tool 호출, Human Approval 흐름을 웹에서 직접 실행·확인한다.
+
+### Multi-Agent 실행
+
+![Phase 6 Multi-Agent 실행 화면](docs/images/phase6-multi-agent-experiments.png)
+
+Diagnostics Agent에서 Operations Agent로의 명시적 Handoff와 자율 판단 실험 실행 화면
+
+### Handoff 및 Human Approval
+
+![Phase 6 Handoff 및 Human Approval 화면](docs/images/phase6-handoff-approval.png)
+
+Operations Agent의 `restart_service` 호출 전 승인 대기 상태와 Agent Handoff, Tool Call, fixture 상태 확인 화면
 
 ## 기술 구성
 
@@ -246,7 +282,7 @@ uv run uvicorn mcp_ai_agent_lab.main:app --reload
 http://127.0.0.1:8000
 ```
 
-웹 화면에서 구현된 Phase의 Tool Calling 또는 Workflow·Agent 비교 기능 실행 가능.
+웹 화면에서 Phase별 Tool Calling, Workflow·Agent 비교, MCP 연결, Human Approval, Handoff 실행·검증 가능.
 
 ### 테스트
 
@@ -271,7 +307,7 @@ Ctrl + C
 
 ## 검증 기준
 
-Phase별 기능 구현 외 항목 포함 검증
+Phase별 기능 구현 외 검증 항목
 
 ```text
 기능 구현
@@ -305,8 +341,9 @@ Tool 선택, 실행 경로, Required Evidence, 오류 유형, Approval, Handoff 
 ## 프로젝트 문서
 
 * [개념 학습 문서](https://seoheejung.github.io/mcp-ai-agent-lab/)
+* [Phase 구현·검증 결과](https://seoheejung.github.io/mcp-ai-agent-lab/index-result.html)
 
-개념 학습 문서 구성:
+### 개념 학습 문서
 
 * LLM과 Tool Calling
 * Tool Calling과 AI Agent의 차이
@@ -320,6 +357,15 @@ Tool 선택, 실행 경로, Required Evidence, 오류 유형, Approval, Handoff 
 * Multi-Agent와 단일 Agent 구분
 * 직접 Function Calling과 MCP Tool 비교
 * MCP와 AI Agent 학습 순서
+
+### Phase 구현·검증 결과
+
+* Phase 1 — Tool Calling
+* Phase 2 — Agent Loop
+* Phase 3 — MCP Server
+* Phase 4 — Agent + MCP
+* Phase 5 — Human Approval
+* Phase 6 — Multi-Agent
 
 ## 참고 자료
 

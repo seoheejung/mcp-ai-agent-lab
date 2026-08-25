@@ -284,9 +284,206 @@
         min-width: 150px;
       }
     }
+
+    /* RawBlock document theme */
+    :root {
+      --bg: #ffffff;
+      --surface: #ffffff;
+      --surface-2: #000000;
+      --surface-3: #f0f0f0;
+      --text: #000000;
+      --muted: #222222;
+      --line: #000000;
+      --accent: #0000ff;
+      --accent-2: #000000;
+      --warning: #a65e00;
+      --code: #f0f0f0;
+      --max: 1200px;
+    }
+
+    html { scroll-padding-top: 84px; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Work Sans", "Noto Sans KR", system-ui, sans-serif;
+      line-height: 1.6;
+    }
+
+    a { color: var(--accent); }
+    a:focus-visible, summary:focus-visible {
+      outline: 5px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .skip-link {
+      position: fixed;
+      top: 0;
+      left: -999px;
+      z-index: 20;
+      padding: 10px 16px;
+      background: #000;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .skip-link:focus { left: 0; }
+
+    .layout { width: min(calc(100% - 40px), var(--max)); }
+
+    header {
+      padding: 120px 0 48px;
+      border-bottom: 5px solid var(--line);
+    }
+
+    .eyebrow {
+      color: var(--text);
+      font-family: "Space Mono", Consolas, monospace;
+      font-size: 0.82rem;
+    }
+
+    h1, h2, h3 {
+      font-family: "Archivo Black", "Arial Black", "Noto Sans KR", sans-serif;
+      color: var(--text);
+      line-height: 1.05;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    h1 { font-size: clamp(3rem, 8vw, 6.4rem); }
+    h2 { font-size: clamp(2.1rem, 5vw, 4rem); }
+    h3 { font-size: clamp(1.25rem, 2.6vw, 1.7rem); }
+
+    .lead { color: var(--muted); font-size: 1.15rem; }
+
+    .summary-box,
+    .card,
+    .diagram,
+    table,
+    pre {
+      border: 3px solid var(--line);
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .summary-box {
+      background: #fff;
+      padding: 24px;
+    }
+
+    .card { background: #fff; padding: 24px; }
+
+    .diagram { background: #f0f0f0; }
+
+    pre {
+      background: #f0f0f0;
+      color: #000;
+      font-family: "Space Mono", Consolas, monospace;
+    }
+
+    code { font-family: "Space Mono", Consolas, monospace; }
+
+    blockquote {
+      border: 3px solid var(--line);
+      border-left-width: 8px;
+      border-radius: 0;
+      background: #f0f0f0;
+      color: #000;
+    }
+
+    main { padding: 48px 0 96px; }
+    section { scroll-margin-top: 92px; }
+
+    nav.toc {
+      position: fixed;
+      top: 0;
+      right: 0;
+      left: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      margin: 0;
+      padding: 10px 20px;
+      overflow: hidden;
+      border: 0;
+      border-bottom: 5px solid var(--line);
+      border-radius: 0;
+      background: #fff;
+    }
+
+    nav.toc strong {
+      flex: 0 0 auto;
+      margin: 0;
+      color: #000;
+      font-family: "Archivo Black", "Arial Black", "Noto Sans KR", sans-serif;
+    }
+
+    nav.toc ol {
+      display: flex;
+      flex: 1 1 auto;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      overflow-x: auto;
+      columns: 1;
+      list-style: none;
+    }
+
+    nav.toc li { flex: 0 0 auto; margin: 0; }
+
+    nav.toc a {
+      display: block;
+      padding: 5px 8px;
+      border: 2px solid #000;
+      color: #000;
+      font-family: "Space Mono", Consolas, monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    nav.toc a:hover { background: #000; color: #fff; }
+
+    table { background: #fff; }
+    thead { background: #000; color: #fff; }
+    th, td { border-color: #000; }
+    .key { color: #000; text-decoration: underline; text-decoration-thickness: 3px; }
+    .warning { color: var(--warning); }
+
+    footer {
+      padding: 32px 0 56px;
+      border-top: 5px solid #000;
+      background: #000;
+      color: #fff;
+    }
+
+    @media (max-width: 760px) {
+      body { overflow-x: hidden; word-break: normal; }
+      .layout { width: min(calc(100% - 24px), var(--max)); }
+      header { padding-top: 132px; }
+      h1 { font-size: 2.3rem; word-break: break-all; }
+      h2 { font-size: 2rem; word-break: break-all; }
+      .lead, .summary-box p { overflow-wrap: anywhere; word-break: break-all; }
+      nav.toc { align-items: flex-start; flex-direction: column; gap: 6px; padding: 8px 12px; }
+      nav.toc ol { width: 100%; }
+      nav.toc a { font-size: 0.7rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#content">본문으로 건너뛰기</a>
   <header>
     <div class="layout">
       <div class="eyebrow">MCP · AI Agent · Tool Calling</div>
@@ -304,7 +501,7 @@
     </div>
   </header>
 
-  <main class="layout">
+  <main id="content" class="layout">
     <nav class="toc" aria-label="목차">
       <strong>목차</strong>
       <ol>
@@ -1223,6 +1420,7 @@ MCP Tool</pre>
   <footer>
     <div class="layout">
       MCP와 AI Agent 개념 학습용 단일 HTML 문서
+      <a href="index-result.html">Phase 1~6 실제 구현·검증 결과 보기</a>
     </div>
   </footer>
 </body>

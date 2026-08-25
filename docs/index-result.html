@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="MCP & AI Agent LAB Phase 1~6 실제 구현 및 검증 결과" />
+    <title>Backend Diagnostics — Phase 1–6 결과</title>
+    <style>
+      :root { --ink:#000; --paper:#fff; --soft:#f0f0f0; --link:#0000ff; --good:#008000; --warn:#a65e00; --bad:#c00000; --max:1200px; }
+      * { box-sizing:border-box; }
+      html { scroll-behavior:smooth; }
+      body { margin:0; background:var(--paper); color:var(--ink); font-family:"Work Sans","Noto Sans KR",system-ui,sans-serif; font-size:16px; line-height:1.65; word-break:keep-all; }
+      a { color:var(--link); text-underline-offset:3px; }
+      a:focus-visible, summary:focus-visible { outline:5px solid var(--link); outline-offset:3px; }
+      .skip { position:absolute; left:-999px; top:0; z-index:10; padding:12px 16px; background:var(--ink); color:var(--paper); font-weight:700; }
+      .skip:focus { left:0; }
+      .wrap { width:min(calc(100% - 32px),var(--max)); margin:0 auto; }
+      .masthead { border-bottom:5px solid var(--ink); }
+      .masthead .wrap { padding:64px 0 40px; }
+      .eyebrow,.label,.metric-label,.phase-number { font-family:"Space Mono",Consolas,monospace; font-size:.8rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+      .eyebrow { margin:0 0 16px; }
+      h1,h2,h3 { font-family:"Archivo Black",Impact,sans-serif; line-height:1.05; letter-spacing:-.025em; overflow-wrap:anywhere; word-break:normal; }
+      h1 { max-width:900px; margin:0; font-size:clamp(3rem,8vw,6.4rem); }
+      h2 { margin:0; font-size:clamp(2.2rem,5vw,4rem); }
+      h3 { margin:0 0 10px; font-size:1.32rem; }
+      .lead { max-width:850px; margin:24px 0 0; font-size:clamp(1.1rem,2.3vw,1.35rem); overflow-wrap:anywhere; word-break:normal; }
+      .phase-nav { position:sticky; top:0; z-index:5; border-bottom:3px solid var(--ink); background:var(--paper); }
+      .phase-nav .wrap { display:flex; gap:16px; align-items:center; padding:12px 0; }
+      .phase-nav strong { flex:0 0 auto; font-family:"Archivo Black",Impact,sans-serif; }
+      .phase-nav ul { display:flex; gap:8px; margin:0; padding:0; overflow-x:auto; list-style:none; }
+      .phase-nav a { display:block; padding:5px 8px; border:2px solid var(--ink); color:var(--ink); font-family:"Space Mono",Consolas,monospace; font-size:.78rem; font-weight:700; text-decoration:none; white-space:nowrap; }
+      .phase-nav a:hover { background:var(--ink); color:var(--paper); }
+      main { padding:48px 0 88px; }
+      .intro { padding:24px; border:5px solid var(--ink); background:var(--soft); }
+      .intro p { max-width:920px; margin:0; font-size:1.12rem; }
+      .flow,.grid,.metrics { display:grid; border-top:3px solid var(--ink); border-left:3px solid var(--ink); }
+      .flow { grid-template-columns:repeat(6,minmax(120px,1fr)); margin-top:28px; }
+      .flow div { min-height:122px; padding:14px; border-right:3px solid var(--ink); border-bottom:3px solid var(--ink); }
+      .flow span { display:block; margin-bottom:12px; font-family:"Space Mono",Consolas,monospace; font-size:.75rem; font-weight:700; }
+      .flow strong { display:block; font-family:"Archivo Black",Impact,sans-serif; line-height:1.08; }
+      .phase { margin-top:80px; scroll-margin-top:72px; }
+      .phase-header { display:grid; grid-template-columns:minmax(110px,.22fr) 1fr; border:5px solid var(--ink); }
+      .phase-number { display:grid; min-height:145px; place-items:center; padding:18px; border-right:5px solid var(--ink); background:var(--ink); color:var(--paper); font-size:clamp(1.3rem,3vw,2.2rem); }
+      .phase-title { padding:24px; }
+      .phase-title p { margin:14px 0 0; font-size:1.12rem; }
+      .grid { grid-template-columns:repeat(2,minmax(0,1fr)); margin-top:20px; }
+      .block { min-height:180px; padding:22px; border-right:3px solid var(--ink); border-bottom:3px solid var(--ink); }
+      .block.wide { grid-column:1 / -1; }
+      .block p:last-child,.block ul:last-child { margin-bottom:0; }
+      .diagram { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:14px; padding:16px; border:3px solid var(--ink); background:var(--soft); font-family:"Space Mono",Consolas,monospace; font-size:.84rem; }
+      .node { padding:7px 9px; border:2px solid var(--ink); background:var(--paper); font-weight:700; }
+      .arrow { font-weight:700; }
+      .list { margin:0; padding-left:1.25rem; }
+      .list li + li { margin-top:6px; }
+      code { padding:1px 4px; background:var(--soft); font-family:"Space Mono",Consolas,monospace; font-size:.9em; }
+      .metrics { grid-template-columns:repeat(4,minmax(0,1fr)); margin-top:20px; }
+      .metric { min-height:118px; padding:15px; border-right:3px solid var(--ink); border-bottom:3px solid var(--ink); }
+      .metric-value { display:block; margin-top:12px; font-family:"Archivo Black",Impact,sans-serif; font-size:1.23rem; line-height:1.1; }
+      .metric-note { display:block; margin-top:8px; font-size:.84rem; }
+      .table-wrap { margin-top:20px; overflow-x:auto; border:3px solid var(--ink); }
+      table { width:100%; min-width:670px; border-collapse:collapse; }
+      th,td { padding:12px; border-right:2px solid var(--ink); border-bottom:2px solid var(--ink); text-align:left; vertical-align:top; }
+      th:last-child,td:last-child { border-right:0; }
+      tbody tr:last-child td { border-bottom:0; }
+      th { background:var(--ink); color:var(--paper); font-family:"Space Mono",Consolas,monospace; font-size:.8rem; text-transform:uppercase; }
+      .concept { margin-top:20px; padding:22px; border:5px solid var(--ink); background:var(--ink); color:var(--paper); }
+      .concept h3 { color:var(--paper); }
+      .concept p { margin:0; font-size:1.1rem; }
+      .concept .label { display:block; margin-bottom:8px; }
+      details { margin-top:20px; border:3px solid var(--ink); }
+      summary { padding:14px; cursor:pointer; font-family:"Space Mono",Consolas,monospace; font-weight:700; }
+      details > div { padding:0 18px 18px; border-top:3px solid var(--ink); }
+      .note { margin-top:22px; padding:18px; border-left:8px solid var(--ink); background:var(--soft); }
+      .state { font-family:"Space Mono",Consolas,monospace; font-size:.82rem; font-weight:700; }
+      .state::before { margin-right:5px; }
+      .good { color:var(--good); }.good::before { content:"[OK]"; }
+      .wait { color:var(--warn); }.wait::before { content:"[WAIT]"; }
+      .bad { color:var(--bad); }.bad::before { content:"[STOP]"; }
+      footer { border-top:5px solid var(--ink); background:var(--ink); color:var(--paper); }
+      footer .wrap { padding:28px 0 46px; }
+      footer p { max-width:840px; margin:0; }
+      @media (max-width:820px) { .flow { grid-template-columns:repeat(2,minmax(0,1fr)); }.grid,.metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }.phase-header { grid-template-columns:1fr; }.phase-number { min-height:auto; border-right:0; border-bottom:5px solid var(--ink); } }
+      @media (max-width:560px) { body { overflow-x:hidden; }.wrap { width:min(calc(100% - 20px),var(--max)); }.masthead .wrap { padding:40px 0 28px; }.phase-nav .wrap { align-items:flex-start; flex-direction:column; gap:6px; }.flow,.grid,.metrics { grid-template-columns:1fr; }.block.wide { grid-column:auto; }.phase { margin-top:54px; } h1 { font-size:2.5rem; word-break:break-all; } h2 { font-size:2rem; word-break:break-all; } .lead,.intro p,.phase-title p { overflow-wrap:anywhere; word-break:break-all; } }
+      @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; } }
+    </style>
+  </head>
+  <body>
+    <a class="skip" href="#content">본문으로 건너뛰기</a>
+    <header class="masthead">
+      <div class="wrap">
+        <p class="eyebrow">MCP &amp; AI AGENT LAB / VERIFIED RESULTS</p>
+        <h1>같은 진단 도구를<br />여섯 단계로 확장한 기록</h1>
+        <p class="lead">이 페이지는 <strong>실제로 구현하고 실행한 결과</strong>만 사용합니다. 핵심은 도구가 점점 “똑똑해진다”는 이야기가 아닙니다. 누가 다음 행동을 정하는지, 외부 기능을 어떻게 연결하는지, 위험한 행동을 어디에서 멈추게 하는지가 단계마다 달라집니다.</p>
+      </div>
+    </header>
+    <nav class="phase-nav" aria-label="Phase navigation">
+      <div class="wrap"><strong>PHASES</strong><ul><li><a href="#phase-1">01 Tool Calling</a></li><li><a href="#phase-2">02 Agent Loop</a></li><li><a href="#phase-3">03 MCP Server</a></li><li><a href="#phase-4">04 Agent + MCP</a></li><li><a href="#phase-5">05 Approval</a></li><li><a href="#phase-6">06 Multi-Agent</a></li></ul></div>
+    </nav>
+    <main id="content" class="wrap">
+      <section class="intro" aria-labelledby="map-title">
+        <h2 id="map-title">먼저, 여섯 단계를 한 줄로 보면</h2>
+        <p>모든 단계는 같은 <code>order-api</code> 진단 fixture를 사용합니다. 처음에는 LLM이 함수 하나를 부르고, 다음에는 Agent가 다음 행동을 고르고, 그 뒤에는 MCP라는 표준 통로를 붙입니다. 마지막 두 단계는 재시작처럼 상태를 바꾸는 행동에 사람의 확인과 역할 분리를 더합니다.</p>
+        <div class="flow" aria-label="Phase 1 to 6 flow"><div><span>PHASE 1</span><strong>Tool<br />Calling</strong></div><div><span>PHASE 2</span><strong>Agent<br />Loop</strong></div><div><span>PHASE 3</span><strong>MCP<br />Server</strong></div><div><span>PHASE 4</span><strong>Agent<br />+ MCP</strong></div><div><span>PHASE 5</span><strong>Human<br />Approval</strong></div><div><span>PHASE 6</span><strong>Multi-<br />Agent</strong></div></div>
+      </section>
+
+      <section id="phase-1" class="phase" aria-labelledby="phase-1-title">
+        <div class="phase-header"><div class="phase-number">PHASE<br />01</div><div class="phase-title"><h2 id="phase-1-title">Tool Calling: LLM에게 사용할 함수를 알려주기</h2><p>처음에는 Agent가 없습니다. LLM이 질문에 맞는 Function Tool을 한 번 선택하고, 그 결과를 받아 구조화된 진단 보고서를 만듭니다.</p></div></div>
+        <div class="grid">
+          <article class="block"><h3>이 작업이 무엇이고, 왜 하나요?</h3><p>LLM이 최신 서비스 상태를 스스로 알 수는 없으므로, FastAPI Backend를 조회하는 세 함수를 선택지로 제공합니다. “무엇을 호출할 수 있는가”와 “호출 결과를 답변에 어떻게 쓰는가”를 가장 작은 단위로 확인하는 단계입니다.</p></article>
+          <article class="block"><h3>이전 단계와 무엇이 다른가요?</h3><p>시작 단계입니다. 일반 텍스트 응답과 달리 LLM은 함수 호출을 요청할 수 있지만, 결과를 보고 다음 행동을 반복해서 정하는 Agent Loop는 아직 없습니다.</p><div class="diagram"><span class="node">질문</span><span class="arrow">→</span><span class="node">Responses API</span><span class="arrow">→</span><span class="node">Function Tool</span><span class="arrow">→</span><span class="node">진단 결과</span></div></article>
+          <article class="block wide"><h3>실제 구현 구조</h3><ul class="list"><li>Read-only Function Tool: <code>get_service_status</code>, <code>get_recent_metrics</code>, <code>get_recent_logs</code></li><li>각 Tool은 HTTPX로 기존 FastAPI Diagnostics API를 호출합니다.</li><li>Tool 결과를 <code>function_call_output</code>으로 다시 전달하고 <code>DiagnosticReport</code>로 검증했습니다.</li></ul></article>
+        </div>
+        <div class="metrics" aria-label="Phase 1 actual metrics"><div class="metric"><span class="metric-label">STATUS CALL</span><span class="metric-value">1,206.8169 ms</span><span class="metric-note">426 input / 125 output / 551 total tokens</span></div><div class="metric"><span class="metric-label">METRICS CALL</span><span class="metric-value">1,176.4492 ms</span><span class="metric-note">433 input / 138 output / 571 total tokens</span></div><div class="metric"><span class="metric-label">LOGS CALL</span><span class="metric-value">1,179.4124 ms</span><span class="metric-note">474 input / 149 output / 623 total tokens</span></div><div class="metric"><span class="metric-label">ERROR + STREAM</span><span class="metric-value">404 / verified</span><span class="metric-note"><code>unknown-api</code> 404, text delta와 completion 확인</span></div></div>
+        <aside class="concept"><span class="label">핵심 개념</span><h3>Tool Calling은 Agent와 같은 말이 아닙니다.</h3><p>여기서는 LLM이 함수 호출을 선택합니다. 하지만 여러 결과를 관찰하며 다음 행동을 계속 결정하는 실행 루프는 아직 없습니다.</p></aside>
+      </section>
+
+      <section id="phase-2" class="phase" aria-labelledby="phase-2-title">
+        <div class="phase-header"><div class="phase-number">PHASE<br />02</div><div class="phase-title"><h2 id="phase-2-title">Agent Loop: 누가 호출 순서를 결정할까?</h2><p>같은 세 Function Tool을 두 방식으로 실행했습니다. Workflow는 코드가 순서를 정하고, Diagnostics Agent는 모델이 다음 Tool을 선택합니다.</p></div></div>
+        <div class="grid">
+          <article class="block"><h3>이 작업이 무엇이고, 왜 하나요?</h3><p>“응답이 느린 원인을 조사해줘”라는 하나의 목표에는 상태, 지표, 로그가 모두 필요합니다. 고정 순서와 Agent Loop의 제어권 차이를 실제 요청·토큰·Trace로 비교했습니다.</p></article>
+          <article class="block"><h3>이전과 달라진 점</h3><div class="diagram"><span class="node">Workflow: code decides</span><span class="arrow">≠</span><span class="node">Agent: model chooses next Tool</span></div><p>두 방식 모두 같은 Backend, fixture, 모델, Read Tool을 사용했습니다.</p></article>
+          <article class="block wide"><h3>실제 구현 구조</h3><p>Deterministic Workflow는 <code>get_service_status → get_recent_metrics → get_recent_logs → LLM</code>으로 구현했습니다. Diagnostics Agent에는 세 Tool과 <code>DiagnosticReport</code> 출력 schema를 주되 Tool 순서는 코드로 고정하지 않았습니다.</p></article>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>실제 측정</th><th>Deterministic Workflow</th><th>Diagnostics Agent</th></tr></thead><tbody><tr><td>Tool Calls</td><td>3</td><td>3</td></tr><tr><td>LLM Requests</td><td>1</td><td>2</td></tr><tr><td>Tokens</td><td>337 input / 210 output / 547 total</td><td>870 input / 321 output / 1,191 total</td></tr><tr><td>End-to-End</td><td>8,028.9780 ms</td><td>9,522.9167 ms</td></tr><tr><td>실제 logs limit</td><td>10</td><td>100 (모델 선택)</td></tr><tr><td>Required Evidence</td><td>status, metrics, logs</td><td>status, metrics, logs</td></tr></tbody></table></div>
+        <details><summary>실제 검증에서 확인한 Trace와 최종 결과</summary><div><p>두 실행 모두 <code>DiagnosticReport</code>를 반환했습니다. Workflow는 <code>recommended_action=restart_service</code>, Agent는 <code>recommended_action=none</code>이었습니다. 실제 Agents SDK Trace도 생성됐고, Workflow에는 <code>function</code>과 <code>generation</code>, Agent에는 <code>response</code>, <code>function</code>, <code>turn</code>, <code>agent</code>, <code>task</code> span이 기록됐습니다.</p></div></details>
+        <aside class="concept"><span class="label">핵심 개념</span><h3>Workflow는 정해진 길이고, Agent는 선택 가능한 길입니다.</h3><p>이번 Agent 실행의 순서도 status → metrics → logs였지만, 그 순서를 코드가 강제한 것은 아닙니다. 이 차이가 Agent Loop입니다.</p></aside>
+      </section>
+
+      <section id="phase-3" class="phase" aria-labelledby="phase-3-title">
+        <div class="phase-header"><div class="phase-number">PHASE<br />03</div><div class="phase-title"><h2 id="phase-3-title">MCP Server: 기능을 표준 통로로 따로 제공하기</h2><p>이번에는 LLM과 Agent를 사용하지 않았습니다. stdio FastMCP Server가 Tool을 제공하고, 독립 FastMCP Client가 발견하고 호출하는지만 검증했습니다.</p></div></div>
+        <div class="grid">
+          <article class="block"><h3>이 작업이 무엇이고, 왜 하나요?</h3><p>MCP는 Agent가 아닙니다. MCP는 Client와 Server가 Tool을 발견하고 호출하는 약속입니다. 그래서 Agent 없이도 Server와 Client만으로 기능 제공과 오류 전달을 확인할 수 있습니다.</p></article>
+          <article class="block"><h3>이전과 달라진 점</h3><div class="diagram"><span class="node">독립 MCP Client</span><span class="arrow">↔ stdio ↔</span><span class="node">FastMCP Server</span><span class="arrow">→</span><span class="node">Backend</span></div><p>실행을 판단하는 주체를 추가한 것이 아니라, Tool 연결 인터페이스를 분리했습니다.</p></article>
+          <article class="block wide"><h3>실제 구현 구조</h3><p>FastMCP <code>3.4.7</code>, stdio transport, 세 Read-only MCP Tool을 사용했습니다. 검증용 Client는 Phase 3의 독립 검증 전용이며 Phase 4 Agent 코드 재사용을 위해 확장하지 않았습니다.</p></article>
+        </div>
+        <div class="metrics"><div class="metric"><span class="metric-label">DISCOVERY</span><span class="metric-value">3 Tools</span><span class="metric-note">입력·출력 schema를 실제 발견</span></div><div class="metric"><span class="metric-label">STDIO RUN</span><span class="metric-value">5,440.8680 ms</span><span class="metric-note">독립 Client 전체 실행 시간</span></div><div class="metric"><span class="metric-label">TOOL TIME</span><span class="metric-value">1,240–1,243 ms</span><span class="metric-note">세 정상 Tool Call의 실제 시간</span></div><div class="metric"><span class="metric-label">LLM / TOKENS</span><span class="metric-value">N/A</span><span class="metric-note">LLM과 Agent를 실행하지 않음</span></div></div>
+        <details><summary>실제 Discovery, 결과, 오류 전달</summary><div><p>발견한 Tool은 <code>get_service_status</code>, <code>get_recent_metrics</code>, <code>get_recent_logs</code>였습니다. 세 호출은 degraded 상태, <code>842 ms</code> 지연, <code>0.073</code> 오류율, 2개 로그를 반환했습니다. <code>limit: 0</code>, <code>unknown-api</code>, 연결 불가 Backend는 <code>McpToolError / mcp_tool_error</code>였고, 존재하지 않는 stdio Server 모듈 연결은 FastMCP SDK <code>McpError</code>였습니다.</p></div></details>
+        <aside class="concept"><span class="label">핵심 개념</span><h3>MCP Server는 “판단자”가 아니라 “제공자”입니다.</h3><p>Server는 어떤 Tool이 있는지 알리고, 요청을 받아 실행하고, 결과나 오류를 돌려줍니다. LLM 또는 Agent는 이 단계에 없어도 됩니다.</p></aside>
+      </section>
+
+      <section id="phase-4" class="phase" aria-labelledby="phase-4-title">
+        <div class="phase-header"><div class="phase-number">PHASE<br />04</div><div class="phase-title"><h2 id="phase-4-title">Agent + MCP: Agent는 그대로, 연결만 바꾸기</h2><p>Diagnostics Agent가 Local Function Tool을 쓸 때와 stdio MCP Tool을 쓸 때를 같은 조건에서 비교했습니다.</p></div></div>
+        <div class="grid">
+          <article class="block"><h3>이 작업이 무엇이고, 왜 하나요?</h3><p>“MCP를 붙이면 Agent 자체가 달라지는가?”를 분리해 보기 위한 실험입니다. Agent의 이름, instruction, 출력 schema, 평가 질문, Backend fixture, 모델은 그대로 두고 Tool 연결만 바꿨습니다.</p></article>
+          <article class="block"><h3>이전과 달라진 점</h3><div class="diagram"><span class="node">Diagnostics Agent</span><span class="arrow">→</span><span class="node">Local Function Tools</span><span class="arrow">/</span><span class="node">MCPServerStdio → MCP Tools</span></div><p>Phase 3의 MCP Server를 Agent가 실제 Client로 사용한 첫 단계입니다.</p></article>
+          <article class="block wide"><h3>실제 구현 구조</h3><p><code>MCPServerStdio</code>가 <code>python -m mcp_ai_agent_lab.mcp_server</code>에 연결합니다. 웹은 <code>POST /api/agent-mcp/comparison</code>으로 두 실행의 Tool Call, usage, 시간, Required Evidence, trace를 나란히 보여줍니다.</p></article>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>실제 측정</th><th>Local Function Agent</th><th>MCP stdio Agent</th></tr></thead><tbody><tr><td>Success / Tool Calls / LLM Requests</td><td><span class="state good">true</span> / 3 / 2</td><td><span class="state good">true</span> / 3 / 2</td></tr><tr><td>Tokens</td><td>871 input / 385 output / 1,256 total</td><td>819 input / 375 output / 1,194 total</td></tr><tr><td>End-to-End</td><td>13,315.2218 ms</td><td>10,084.8971 ms</td></tr><tr><td>Tool Time 합계</td><td>7,936.1134 ms</td><td>11,871.2636 ms</td></tr><tr><td>모델이 선택한 logs limit</td><td>50</td><td>20</td></tr><tr><td>Required Evidence</td><td>세 도구 모두</td><td>세 도구 모두</td></tr></tbody></table></div>
+        <div class="note"><strong>측정 해석:</strong> 위 값은 한 번의 실제 실행 값입니다. 문서는 어느 연결 방식이 더 빠르거나 더 낫다는 결론을 내리지 않습니다.</div>
+        <aside class="concept"><span class="label">핵심 개념</span><h3>Agent와 MCP는 서로 대체하지 않습니다.</h3><p>Agent는 다음 행동을 고르는 실행 구조입니다. MCP는 Agent가 외부 Tool에 닿는 연결 방식입니다. Agent는 Local Function도, MCP Tool도 사용할 수 있습니다.</p></aside>
+      </section>
+
+      <section id="phase-5" class="phase" aria-labelledby="phase-5-title">
+        <div class="phase-header"><div class="phase-number">PHASE<br />05</div><div class="phase-title"><h2 id="phase-5-title">Human Approval: 상태를 바꾸기 전에 멈추기</h2><p>Read Tool은 그대로 두고, fixture 상태를 바꾸는 <code>restart_service</code> Write Tool에만 사람의 승인 또는 거절을 적용했습니다.</p></div></div>
+        <div class="grid">
+          <article class="block"><h3>이 작업이 무엇이고, 왜 하나요?</h3><p>상태 조회와 상태 변경은 위험도가 다릅니다. 재시작 요청을 모델이 만들었다고 바로 실행하지 않고, Web UI에서 사람이 결정할 때까지 Agent 실행을 중단하는 흐름을 만들었습니다.</p></article>
+          <article class="block"><h3>이전과 달라진 점</h3><div class="diagram"><span class="node">Agent</span><span class="arrow">→</span><span class="node">restart request</span><span class="arrow">→</span><span class="node">PAUSE</span><span class="arrow">→</span><span class="node">Web Approve / Reject</span><span class="arrow">→</span><span class="node">same RunState</span></div><p>Approval 대상은 <code>restart_service</code> 하나뿐입니다. Read Tool에는 적용하지 않았습니다.</p></article>
+          <article class="block wide"><h3>실제 구현 구조</h3><p>FastAPI <code>POST /services/{service}/restart</code>와 FastMCP <code>restart_service</code>를 추가했습니다. 실제 Docker나 서버를 재시작하지 않고 fixture만 <code>degraded → healthy</code>로 바꿉니다. Pending <code>RunState</code>와 MCP stdio 연결은 <strong>현재 구현에서 프로세스 메모리</strong>에 보관합니다.</p></article>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>실제 측정</th><th>Approve 재개 완료</th><th>Reject 재개 완료</th></tr></thead><tbody><tr><td>LLM Requests</td><td>3</td><td>3</td></tr><tr><td>Tokens</td><td>1,543 input / 281 output / 1,824 total</td><td>1,545 input / 378 output / 1,923 total</td></tr><tr><td>End-to-End / Approval Wait</td><td>17,021.1084 ms / 5,738.0223 ms</td><td>17,586.8578 ms / 8,210.3778 ms</td></tr><tr><td>restart_service Tool Calls</td><td><span class="state good">1</span></td><td><span class="state bad">0</span></td></tr><tr><td>최종 Fixture Status</td><td><span class="state good">healthy</span></td><td><span class="state bad">degraded 유지</span></td></tr></tbody></table></div>
+        <details><summary>승인 전후 실제로 확인한 것</summary><div><p>두 실험은 degraded fixture로 시작했고, 세 Read Tool 뒤 <code>restart_service({"service":"order-api"})</code> 승인 요청에서 멈췄습니다. 승인 전에는 restart Tool Call이 없었습니다. Approve 후에는 정확히 한 번 실행되어 healthy가 됐고, Reject 후에는 실행되지 않아 degraded가 유지됐습니다. Agents SDK Trace도 실제 생성됐습니다.</p></div></details>
+        <aside class="concept"><span class="label">핵심 개념</span><h3>Approval은 Tool 자체를 없애는 기능이 아니라, 실행 직전에 제어를 사람에게 넘기는 정책입니다.</h3><p>이 구현에서 읽기 작업은 계속 자동으로 진행됩니다. 오직 Write Tool인 <code>restart_service</code>만 중단·승인·재개 흐름을 거칩니다.</p></aside>
+      </section>
+
+      <section id="phase-6" class="phase" aria-labelledby="phase-6-title">
+        <div class="phase-header"><div class="phase-number">PHASE<br />06</div><div class="phase-title"><h2 id="phase-6-title">Multi-Agent: 필요한 역할에게만 필요한 Tool 주기</h2><p>정확히 두 Agent만 사용했습니다. Diagnostics Agent는 읽고 판단하며, Operations Agent는 Handoff를 받은 뒤 상태 확인과 승인된 재시작만 할 수 있습니다.</p></div></div>
+        <div class="grid">
+          <article class="block"><h3>이 작업이 무엇이고, 왜 하나요?</h3><p>모든 Agent에 모든 Tool을 주지 않고 역할별 최소 권한을 적용하는 단계입니다. 진단 담당자는 <code>restart_service</code>를 볼 수 없고, 작업 담당자만 승인 정책이 붙은 Write Tool을 볼 수 있습니다.</p></article>
+          <article class="block"><h3>이전과 달라진 점</h3><div class="diagram"><span class="node">Diagnostics Agent: read only</span><span class="arrow">→ HANDOFF →</span><span class="node">Operations Agent: status + approved restart</span></div><p>구현한 협업 방식은 Handoff뿐입니다. Manager, Agents-as-Tools, 병렬 Agent, Memory, RAG는 추가하지 않았습니다.</p></article>
+          <article class="block wide"><h3>실제 구현 구조</h3><ul class="list"><li>Diagnostics Agent: <code>get_service_status</code>, <code>get_recent_metrics</code>, <code>get_recent_logs</code>만 노출</li><li>Operations Agent: <code>get_service_status</code>, <code>restart_service</code>만 노출</li><li><code>restart_service</code>는 Phase 5와 같이 <code>always</code> Human Approval을 유지</li><li>Web은 명시적 Handoff와 자율 판단을 따로 시작하고, Handoff·Tool Call·승인 대기·같은 RunState 재개 결과를 표시</li></ul></article>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>실제 실험</th><th>명시적 Handoff → Approve</th><th>자율 판단 → Reject</th></tr></thead><tbody><tr><td>Handoff</td><td><span class="state good">Diagnostics → Operations</span></td><td><span class="state good">Diagnostics → Operations 관측</span></td></tr><tr><td>시작 구간 LLM / Tokens</td><td>3 / 1,393 input + 218 output = 1,611 total</td><td>3 / 1,435 input + 238 output = 1,673 total</td></tr><tr><td>완료 누적 LLM / Tokens</td><td>4 / 2,031 input + 397 output = 2,428 total</td><td>4 / 2,090 input + 452 output = 2,542 total</td></tr><tr><td>완료 End-to-End / Wait</td><td>19,531.75 ms / 8,222.15 ms</td><td>14,719.23 ms / 18,899.05 ms</td></tr><tr><td>restart_service</td><td><span class="state good">Approve 후 1회, healthy</span></td><td><span class="state bad">Reject 후 0회, degraded 유지</span></td></tr><tr><td>Required Evidence</td><td>status, metrics, logs</td><td>status, metrics, logs</td></tr></tbody></table></div>
+        <details><summary>Single Agent와 Multi-Agent 비교에서 주의할 점</summary><div><p>같은 Backend, degraded fixture, MCP stdio, 모델 설정, 자율 판단 질문으로 Single Agent도 실제 실행했습니다. Single Agent는 status, metrics, logs를 호출했고 2 LLM requests, 947 input / 571 output / 1,518 total tokens, 13,017.47 ms를 기록했습니다. 하지만 <strong>restart approval이 발생하지 않았습니다.</strong> 따라서 Multi-Agent의 Reject 경로와 완전히 동일한 실행 경로가 아니며, 이 한 번의 수치로 성능이나 품질의 우열을 결론 내리지 않습니다.</p></div></details>
+        <aside class="concept"><span class="label">핵심 개념</span><h3>Multi-Agent의 핵심은 Agent 수가 아니라 책임과 권한의 분리입니다.</h3><p>이번 Trace에는 실제 <code>handoff</code> span이 있었고, Single Agent Trace에는 없었습니다. Handoff는 진단 결과와 다음 작업의 책임을 다른 Agent로 넘기는 방식입니다.</p></aside>
+      </section>
+
+      <section class="note" aria-labelledby="close-title"><h2 id="close-title">마지막으로 구분해서 기억하기</h2><p><strong>Tool Calling</strong>은 LLM이 외부 함수를 호출하는 방식입니다. <strong>Agent</strong>는 그 결과를 보고 다음 행동을 선택하는 실행 루프입니다. <strong>MCP</strong>는 Tool과 데이터를 Client/Server 방식으로 발견하고 호출하는 표준 통로입니다. Human Approval과 Handoff는 그 실행에 사람의 결정과 역할 경계를 더합니다.</p></section>
+    </main>
+    <footer><div class="wrap"><p>이 설명 페이지의 수치와 결과는 <code>docs/phase1-tool-calling.md</code>부터 <code>docs/phase6-multi-agent.md</code>까지 기록된 실제 실행 결과를 요약한 것입니다. 미측정 값과 성능 우열은 추가하지 않았습니다.</p></div></footer>
+  </body>
+</html>
