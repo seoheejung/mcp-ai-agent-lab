@@ -4,15 +4,11 @@
 
 ## 개요
 
-MCP와 AI Agent의 개념 분리와 역할 이해를 위한 학습 프로젝트
-
-LLM → Tool Calling → Agent Loop → MCP → Human Approval → Multi-Agent 단계별 확장
-
-FastAPI 기반 Backend Diagnostics API 공통 실습 환경 구성
-
-Tool Calling, Agent Loop, MCP 기반 Tool 연결 구조 단계별 비교
-
-Structured Output, 오류 전파, LLM Usage, Tracing, Human Approval, Handoff 실제 실행 결과 기반 검증
+- MCP와 AI Agent의 개념 분리와 역할 이해를 위한 학습 프로젝트
+- LLM → Tool Calling → Agent Loop → MCP → Human Approval → Multi-Agent 단계별 확장
+- FastAPI 기반 Backend Diagnostics API 공통 실습 환경 구성
+- Tool Calling, Agent Loop, MCP 기반 Tool 연결 구조 단계별 비교
+- Structured Output, 오류 전파, LLM Usage, Tracing, Human Approval, Handoff 실제 실행 결과 기반 검증
 
 ## 핵심 개념
 
@@ -33,24 +29,15 @@ Structured Output, 오류 전파, LLM Usage, Tracing, Human Approval, Handoff �
 ## 핵심 구분
 
 ```text
-Agent
-=
-수행 작업 결정
+Agent = 수행 작업 결정
 
+Tool = 실제 행동 수행
 
-Tool
-=
-실제 행동 수행
-
-
-MCP
-=
-AI와 외부 Tool·Data 사이의 연결 방식 표준화
+MCP = AI와 외부 Tool·Data 사이의 연결 방식 표준화
 ```
 
-MCP와 AI Agent의 역할 분리
-
-AI Agent의 외부 시스템 연결 수단 중 하나로 MCP 사용
+- MCP와 AI Agent의 역할 분리
+- AI Agent의 외부 시스템 연결 수단 중 하나로 MCP 사용
 
 ## 프로젝트 구현 구조
 
@@ -157,9 +144,8 @@ Human Approval
 Multi-Agent
 ```
 
-MCP, Multi-Agent, RAG 동시 구성 제외
-
-개념별 역할 분리 기반 단계적 학습
+- MCP, Multi-Agent, RAG 동시 구성 제외
+- 개념별 역할 분리 기반 단계적 학습
 
 ## Phase 구성
 
@@ -174,19 +160,17 @@ MCP, Multi-Agent, RAG 동시 구성 제외
 
 ## 실행 화면
 
-Phase 6에서는 Diagnostics Agent와 Operations Agent의 Handoff, MCP Tool 호출, Human Approval 흐름을 웹에서 직접 실행·확인한다.
-
 ### Multi-Agent 실행
 
 ![Phase 6 Multi-Agent 실행 화면](docs/images/phase6-multi-agent-experiments.png)
 
-Diagnostics Agent에서 Operations Agent로의 명시적 Handoff와 자율 판단 실험 실행 화면
+> Diagnostics Agent에서 Operations Agent로의 명시적 Handoff와 자율 판단 실험 실행 화면
 
 ### Handoff 및 Human Approval
 
 ![Phase 6 Handoff 및 Human Approval 화면](docs/images/phase6-handoff-approval.png)
 
-Operations Agent의 `restart_service` 호출 전 승인 대기 상태와 Agent Handoff, Tool Call, fixture 상태 확인 화면
+> Operations Agent의 `restart_service` 호출 전 승인 대기 상태와 Agent Handoff, Tool Call, fixture 상태 확인 화면
 
 ## 기술 구성
 
@@ -213,7 +197,7 @@ Operations Agent의 `restart_service` 호출 전 승인 대기 상태와 Agent H
 * uv
 * OpenAI API Key
 
-Python 버전 확인:
+#### Python 버전 확인
 
 ```powershell
 python --version
@@ -223,7 +207,7 @@ python --version
 Python 3.13.14
 ```
 
-uv 버전 확인:
+#### uv 버전 확인
 
 ```powershell
 uv --version
@@ -231,13 +215,13 @@ uv --version
 
 ### 의존성 설치
 
-저장소 루트에서 실행:
+#### 저장소 루트에서 실행
 
 ```powershell
 uv sync
 ```
 
-Lock 파일 상태 확인:
+#### Lock 파일 상태 확인
 
 ```powershell
 uv lock --check
@@ -245,69 +229,58 @@ uv lock --check
 
 ### 환경 변수 설정
 
-현재 PowerShell 세션에 OpenAI 환경 변수 설정:
+#### 현재 PowerShell 세션에 OpenAI 환경 변수 설정
 
 ```powershell
 $env:OPENAI_API_KEY="발급받은 API Key"
 $env:OPENAI_MODEL="사용할 OpenAI 모델"
 ```
 
-설정 여부 확인:
+#### 설정 여부 확인
 
 ```powershell
 Write-Output "OPENAI_API_KEY=$([bool]$env:OPENAI_API_KEY)"
 Write-Output "OPENAI_MODEL=$([bool]$env:OPENAI_MODEL)"
 ```
 
-정상 상태:
+#### 정상 상태
 
 ```text
 OPENAI_API_KEY=True
 OPENAI_MODEL=True
 ```
 
-API Key는 코드, `.env.example`, Git 저장소에 저장하지 않는다.
+> API Key는 코드, `.env.example`, Git 저장소에 저장하지 않는다.
 
 ### 애플리케이션 실행
 
-FastAPI 애플리케이션 실행:
+#### FastAPI 애플리케이션 실행
 
 ```powershell
 uv run uvicorn mcp_ai_agent_lab.main:app --reload
 ```
 
-기본 접속:
+#### 기본 접속
 
 ```text
 http://127.0.0.1:8000
 ```
 
-웹 화면에서 Phase별 Tool Calling, Workflow·Agent 비교, MCP 연결, Human Approval, Handoff 실행·검증 가능.
+> 웹 화면에서 Phase별 Tool Calling, Workflow·Agent 비교, MCP 연결, Human Approval, Handoff 실행·검증 가능.
 
 ### 테스트
 
-전체 테스트 실행:
+#### 전체 테스트 실행
 
 ```powershell
 uv run pytest
 ```
 
-현재 Phase 완료 여부는 테스트 성공만으로 판단하지 않고 실제 OpenAI API 실행, Usage, Tool 결과, Trace 등 해당 Phase 지침서의 검증 조건까지 확인한다.
-
-### 종료
-
-Uvicorn 실행 터미널에서:
-
-```text
-Ctrl + C
-```
-
-실행 종료 후 별도 임시 서버 프로세스가 남아 있지 않은지 확인한다.
-
+> 현재 Phase 완료 여부는 테스트 성공만으로 판단하지 않고 실제 OpenAI API 실행, Usage, Tool 결과, Trace 등 해당 Phase 지침서의 검증 조건까지 확인한다.
 
 ## 검증 기준
 
-Phase별 기능 구현 외 검증 항목
+### Phase별 기능 구현 외 검증 항목
 
 ```text
 기능 구현
@@ -323,7 +296,7 @@ Usage 측정
 평가
 ```
 
-비교 실험 시 가능한 범위 내 동일 조건 유지
+#### 비교 실험 시 가능한 범위 내 동일 조건 유지
 
 ```text
 같은 Backend
@@ -334,9 +307,8 @@ Usage 측정
 같은 Tool 의미
 ```
 
-자연어 답변 완전 일치 기준 제외
-
-Tool 선택, 실행 경로, Required Evidence, 오류 유형, Approval, Handoff 등 관찰 가능한 결과 기준 검증
+- 자연어 답변 완전 일치 기준 제외
+- Tool 선택, 실행 경로, Required Evidence, 오류 유형, Approval, Handoff 등 관찰 가능한 결과 기준 검증
 
 ## 프로젝트 문서
 
